@@ -23,6 +23,8 @@ INSTALLED_APPS = [
     # my apps :
     "users",
     "authentication",
+    "Posts",
+    "Questions"
 
 ]
 
