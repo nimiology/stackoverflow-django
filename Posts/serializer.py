@@ -5,15 +5,13 @@ from users.serializer import ProfileSerializer
 
 
 class PostSerializer(serializers.ModelSerializer):
+    tag = ProfileSerializer(many=True, read_only=True)
+    like = ProfileSerializer(many=True, read_only=True)
+    profile = ProfileSerializer(read_only=True, required=False)
+
     class Meta:
         model = Post
         fields = '__all__'
-
-    def to_representation(self, instance):
-        self.fields['profile'] = ProfileSerializer(read_only=True)
-        self.fields['tag'] = ProfileSerializer(many=True, read_only=True)
-        self.fields['like'] = ProfileSerializer(many=True, read_only=True)
-        return super(PostSerializer, self).to_representation(instance)
 
 
 class CommentSerializer(serializers.ModelSerializer):

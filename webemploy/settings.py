@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from decouple import config, Csv
 
@@ -19,7 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    "rest_framework",
     # my apps :
     "users",
     "authentication",
@@ -118,6 +119,9 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "static_cdn", "media_root")
 
 # ! admin :
 # user:qa_admin | pass:qa_admin

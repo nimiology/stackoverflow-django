@@ -1,5 +1,9 @@
+from django.http import Http404
 from rest_framework import permissions
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import SAFE_METHODS
+
+from Posts.models import Post
 from users import models
 from authentication.utils import (
     request_wallet,
@@ -7,6 +11,7 @@ from authentication.utils import (
     check_token_valid,
     get_token_and_walletid,
 )
+from users.utils import GetWallet
 
 
 class CompanyPermission(permissions.BasePermission):
@@ -91,6 +96,19 @@ class Admin_And_User(permissions.BasePermission):
         return False
 
 
-class ReadOnly(BasePermission):
+class ReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS
+
+
+class BlockedByUserWithPost(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method == 'GET':
+            try:
+                postOwner = Post.objects.get(slug=view.kwargs['slug']).profile
+            except Post.DoesNotExist:
+                raise Http404
+            if not(GetWallet(request) in postOwner.block.all()):
+                return True
+            else:
+                raise ValidationError("You've been blocked")

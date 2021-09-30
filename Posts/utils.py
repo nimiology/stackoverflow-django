@@ -3,6 +3,13 @@ import random
 import string
 
 from django.core.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
+
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 25
+    page_size_query_param = 'page_size'
+    max_page_size = 250
 
 
 def get_filename_ext(filepath):

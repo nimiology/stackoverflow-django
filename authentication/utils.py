@@ -19,7 +19,6 @@ ROLE_ID_EMPLOYEE = config('ROLE_ID_EMPLOYEE')
 
 # todo DRY : Sent request and return response to client | data can set in data or serializer
 def send_request_to_server(url, type, serializer=None, token=None, data_type=None, data={}):
-
     if type == "post":
 
         # * for post method without serializer
@@ -89,20 +88,17 @@ def send_request_to_server(url, type, serializer=None, token=None, data_type=Non
 
 # todo DRY : Sent request and return response to client :)
 def get_token(request):
-
-    try:
+    if 'Authorization' in request.headers:
         token = request.headers['Authorization']
-    # * Cant read Authorization in request header :
-    except KeyError:
-        raise exceptions.ValidationError(
-            detail="ٌCan\'t found Token", code=404)
+        return token
 
-    return token
+    # * Cant read Authorization in request header :
+    else:
+        raise exceptions.ValidationError(detail="ٌCan\'t found Token", code=404)
 
 
 # todo DRY : Create url ( check ROLE_ID )
 def get_url_with_service_and_role(user_type, main_url):
-
     # * Check type for roles :
     if user_type == "company":
         url = HOST + main_url + ROLE_ID_COMPANY + "/" + SERVICE_ID
@@ -118,7 +114,6 @@ def get_url_with_service_and_role(user_type, main_url):
 
 # todo DRY : Create url ( check type with admin or user )
 def get_url_admin_or_user(user_type, main_url):
-
     # * Check type for roles :
     if user_type == "admin":
         url = HOST + "/admin" + main_url
@@ -172,7 +167,6 @@ def check_wallet_id(model, wallet_id):
 
 # todo DRY : Sent request for check token validation :)
 def check_token_valid(token, is_admin=False):
-
     url = URL
 
     # * Set auth_basic for acceptable request & token ( can be None )
