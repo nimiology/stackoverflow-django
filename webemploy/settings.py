@@ -19,6 +19,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # my apps :
+    "users",
+    "authentication",
+
 ]
 
 MIDDLEWARE = [
@@ -110,3 +115,7 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# ! admin :
+# user:qa_admin | pass:qa_admin

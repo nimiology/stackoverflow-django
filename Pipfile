@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 Django = "*"
 python-decouple = "*"
+djangorestframework = "*"
+requests = "*"
+pyjwt = "*"
 
 [dev-packages]
 
