@@ -1,0 +1,502 @@
+{
+	"info": {
+		"_postman_id": "2060be9f-de6e-45fa-93fb-ba1d765bec97",
+		"name": "QA_auth",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "users managment",
+			"item": [
+				{
+					"name": "get all",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjliYzE1YzRiLWIwZGMtNGM3Ny05ZjkwLTM2M2FlNzk1YmM0MCIsInJvbGUiOiJhZG1pbiIsInNlcnZpY2UiOiIzNjBiYzIwYy05Y2MzLTQ1M2EtOGRlNS01YzcxMDU0YzEwNzIiLCJwYWNrZXRfaWQiOiJlZWE0ZjU0MS0yMDI0LTRmMzctYmM0Zi1hZGQ2ZTI3ZGFhN2MiLCJ1c2VybmFtZSI6InFhX2FkbWluIiwid2FsbGV0X2lkIjoiYzY5NmJiNWItZjlkMC00MGM1LWE4MzgtYTAzMTU2NGZkNzVkIiwiaWF0IjoxNjMzMDA2MTA3LCJleHAiOjE2MzMwMTMzMDd9.59PGBJH9441KZcub9hoB3IZTHNq_vRlFQg8iyvrSt1M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "filter",
+									"value": "{\"id\":\"a\"}",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "sort_by",
+									"value": "id",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "sort_type",
+									"value": "1",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "10",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{localhost}}/auth/admin/users/",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"auth",
+								"admin",
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get one",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjliYzE1YzRiLWIwZGMtNGM3Ny05ZjkwLTM2M2FlNzk1YmM0MCIsInJvbGUiOiJhZG1pbiIsInNlcnZpY2UiOiIzNjBiYzIwYy05Y2MzLTQ1M2EtOGRlNS01YzcxMDU0YzEwNzIiLCJwYWNrZXRfaWQiOiJlZWE0ZjU0MS0yMDI0LTRmMzctYmM0Zi1hZGQ2ZTI3ZGFhN2MiLCJ1c2VybmFtZSI6InFhX2FkbWluIiwid2FsbGV0X2lkIjoiYzY5NmJiNWItZjlkMC00MGM1LWE4MzgtYTAzMTU2NGZkNzVkIiwiaWF0IjoxNjMzMDA2MTA3LCJleHAiOjE2MzMwMTMzMDd9.59PGBJH9441KZcub9hoB3IZTHNq_vRlFQg8iyvrSt1M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": []
+						},
+						"url": {
+							"raw": "{{localhost}}/auth/admin/users/:userId/",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"auth",
+								"admin",
+								"users",
+								":userId",
+								""
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "d7972923-6f96-4284-b0d8-a8a7fe1d6d0e"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "register",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "qa_company",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "qa_company",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "qa_company@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "phone_number",
+							"value": "09197756164",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{localhost}}/auth/register/:type/",
+					"host": [
+						"{{localhost}}"
+					],
+					"path": [
+						"auth",
+						"register",
+						":type",
+						""
+					],
+					"variable": [
+						{
+							"description": " company , employee",
+							"key": "type",
+							"value": "company"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "qa_admin",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "qa_admin",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{localhost}}/auth/login/username/:type/",
+					"host": [
+						"{{localhost}}"
+					],
+					"path": [
+						"auth",
+						"login",
+						"username",
+						":type",
+						""
+					],
+					"variable": [
+						{
+							"description": "admin ,  company , employee",
+							"key": "type",
+							"value": "admin"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "refresh the access token by refreshToken",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "refresh_token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2NlY2RhZGEtMGM5NC00MjI0LWFjY2MtYTQ0MzgyMDY2ZDZkIiwidXNlcl90eXBlIjoic3VwZXJfYWRtaW4iLCJpYXQiOjE2MzA5MTIyMDMsImV4cCI6MTYzMDkxOTQwM30.7INr2-EQP1fSY1HP1TDlt0XbD0yecW0BOSbMhSENW90",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "refresh_token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZGE1YmQ3YzUtN2YyNS00MDk5LTg1ZjEtZDEwMjdjZTc0OTU5IiwidXNlcl90eXBlIjoiYWRtaW4iLCJpYXQiOjE2MzA5MTI1MTIsImV4cCI6MTYzMDkxOTcxMn0.y69CfLcjhiGLSMIKBe7840kCG9L9wAs2CYE06O7AQ0s",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "refresh_token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZDc5NzI5MjMtNmY5Ni00Mjg0LWIwZDgtYThhN2ZlMWQ2ZDBlIiwidXNlcl90eXBlIjoidXNlciIsImlhdCI6MTYzMzAwNjE2NCwiZXhwIjoxNjM1NTk4MTY0fQ.lQsfC7J5FI0j4D55iiK3O9FJ8dvEzzvhM0qaoJKwVxY",
+							"type": "text"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{localhost}}/auth/update-token/",
+					"host": [
+						"{{localhost}}"
+					],
+					"path": [
+						"auth",
+						"update-token",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete user",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijg4MTEwYzAyLTc3OWYtNDExNC05OTgxLTIwYmNkYzBhNGYyOSIsInJvbGUiOiJ1c2VyIiwic2VydmljZSI6IjZkMGI1NDkyLWVmMmMtNDIzMy1hNjZjLTU2ZWZiYmFjZjI3ZSIsInJvbGVfaWQiOiIwMjAxZTI1ZC0zYTJlLTQyNDEtODBiZS0yYzkwOTEzNjYxYTAiLCJ1c2VybmFtZSI6InByb2dyYW1taW5nX2NvbXBhbnkiLCJ3YWxsZXRfaWQiOiI5MDg0NWZiMy00OWUwLTQ0YWUtYWRhNi0yNWE0MzM4NDRmOTMiLCJwYWNrZXRfaWQiOiIzNzU5NDgzMy1hMTJiLTQyMDMtYTY1OC0wODhmYjk3OWM1NGMiLCJpYXQiOjE2MzI5NjYxMjksImV4cCI6MTYzMjk3MzMyOX0.rehPpLZNIVTEpeq-B99AzRLD4XoYdFrkeE8fJWlrsr8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "password",
+							"value": "programming_company",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{localhost}}/auth/delete_my_account/",
+					"host": [
+						"{{localhost}}"
+					],
+					"path": [
+						"auth",
+						"delete_my_account",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjhmNjhjYTZiLTcwZWYtNDY3Yi05NmZiLTgwNzAyNzZjYjZhNyIsInJvbGUiOiJ1c2VyIiwic2VydmljZSI6IjJlMTIwYzZjLWZhMWQtNDJlNC1hYjQxLTY3M2JmM2YzMmYxMyIsInJvbGVfaWQiOiJhNTQ0YTIzMy03OWIyLTRhOWMtODEwNy0xZjMxZDYyMTgyNDMiLCJ1c2VybmFtZSI6InRlc3RfMTAxIiwid2FsbGV0X2lkIjoiY2ZiOTgxOWEtNzg1NC00MWRkLTkwYzctNjAyMTU3OGMxODQxIiwicGFja2V0X2lkIjoiYWIzNTY0N2ItZmIyNy00NTYzLWExYjktYzgwMWRlZjUwMDQ2IiwiaWF0IjoxNjMxODE2OTU0LCJleHAiOjE2MzE4MjQxNTR9.NDOUI4asTEFhFWSBbAJzdRD_hGbUz3EkbX9z6M3WQNY",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{localhost}}/auth/logout/:type/",
+					"host": [
+						"{{localhost}}"
+					],
+					"path": [
+						"auth",
+						"logout",
+						":type",
+						""
+					],
+					"variable": [
+						{
+							"key": "type",
+							"value": "user",
+							"description": "admin , user"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update my_info",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ3OTcyOTIzLTZmOTYtNDI4NC1iMGQ4LWE4YTdmZTFkNmQwZSIsInJvbGUiOiJ1c2VyIiwic2VydmljZSI6IjM2MGJjMjBjLTljYzMtNDUzYS04ZGU1LTVjNzEwNTRjMTA3MiIsInJvbGVfaWQiOiI5N2ViMTA0Ni05YWYwLTQ2NmUtODgxOC1lNjI3NzdkMzc4YjYiLCJ1c2VybmFtZSI6InFhX2NvbXBhbnkiLCJ3YWxsZXRfaWQiOiI3MTY5ZmM4Zi02Mzk0LTQwNDktOWI0My0zN2NlOTAyMThlNmUiLCJwYWNrZXRfaWQiOiJlZWE0ZjU0MS0yMDI0LTRmMzctYmM0Zi1hZGQ2ZTI3ZGFhN2MiLCJpYXQiOjE2MzMwMDYxNjQsImV4cCI6MTYzMzAxMzM2NH0.51lh23S5frN0Rs5j_MEL8tLRHdWL96UdJ1mSoLKrP7U",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "qa_company1",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "qa_company1",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "qa_company1@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "phone_number",
+							"value": "09172111164",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{localhost}}/auth/my_info/update/:type/",
+					"host": [
+						"{{localhost}}"
+					],
+					"path": [
+						"auth",
+						"my_info",
+						"update",
+						":type",
+						""
+					],
+					"variable": [
+						{
+							"key": "type",
+							"value": "user",
+							"description": "admin , user"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "my_info",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ3OTcyOTIzLTZmOTYtNDI4NC1iMGQ4LWE4YTdmZTFkNmQwZSIsInJvbGUiOiJ1c2VyIiwic2VydmljZSI6IjM2MGJjMjBjLTljYzMtNDUzYS04ZGU1LTVjNzEwNTRjMTA3MiIsInJvbGVfaWQiOiI5N2ViMTA0Ni05YWYwLTQ2NmUtODgxOC1lNjI3NzdkMzc4YjYiLCJ1c2VybmFtZSI6InFhX2NvbXBhbnkiLCJ3YWxsZXRfaWQiOiI3MTY5ZmM4Zi02Mzk0LTQwNDktOWI0My0zN2NlOTAyMThlNmUiLCJwYWNrZXRfaWQiOiJlZWE0ZjU0MS0yMDI0LTRmMzctYmM0Zi1hZGQ2ZTI3ZGFhN2MiLCJpYXQiOjE2MzMwMDYxNjQsImV4cCI6MTYzMzAxMzM2NH0.51lh23S5frN0Rs5j_MEL8tLRHdWL96UdJ1mSoLKrP7U",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{localhost}}/auth/my_info/:type/",
+					"host": [
+						"{{localhost}}"
+					],
+					"path": [
+						"auth",
+						"my_info",
+						":type",
+						""
+					],
+					"variable": [
+						{
+							"key": "type",
+							"value": "user",
+							"description": "admin , user"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRlMDQ0NzBmLWNiN2ItNGMyOC1iNzAyLTQxMzAzZTA1ZWI5OCIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImlhdCI6MTYzMjk1MTQ3NCwiZXhwIjoxNjMyOTU4Njc0fQ.NjQl-TVUxerLdBfnA1EK2QgBX3K7-ZkSwpHyh1yHlIY",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "localhost",
+			"value": "127.0.0.1:8000"
+		}
+	]
+}
