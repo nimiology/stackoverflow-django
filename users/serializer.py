@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import ReadOnlyField
 
-from .models import *
+from users.models import *
 
 
 class TechSerializer(serializers.ModelSerializer):

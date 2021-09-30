@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models.signals import pre_save, m2m_changed
 
 from users.models import Employee, Company, Wallet, Notification
-from .utils import *
+from Posts.utils import *
 
 
 class Hashtag(models.Model):

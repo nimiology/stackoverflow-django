@@ -8,6 +8,8 @@ class Wallet(models.Model):
     id = models.CharField(max_length=40, primary_key=True)
     following = models.ManyToManyField('Wallet', blank=True, related_name='followers')
     reported = models.BooleanField(default=False)
+    block = models.ManyToManyField('Wallet', blank=True, related_name='blockBy')
+    private = models.BooleanField()
 
     def __str__(self):
         return self.id
