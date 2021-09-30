@@ -86,7 +86,6 @@ class Update_for_Admin_Get_for_User(permissions.BasePermission):
 class Admin_And_User(permissions.BasePermission):
 
     def has_permission(self, request, view):
-
         # * Get Token & Wallet_if from request :
         token, wallet_id = get_token_and_walletid(request)
 
@@ -108,7 +107,9 @@ class BlockedByUserWithPost(permissions.BasePermission):
                 postOwner = Post.objects.get(slug=view.kwargs['slug']).profile
             except Post.DoesNotExist:
                 raise Http404
-            if not(GetWallet(request) in postOwner.block.all()):
+            if not (GetWallet(request) in postOwner.block.all()):
                 return True
             else:
                 raise ValidationError("You've been blocked")
+
+        return request.method != 'GET'
