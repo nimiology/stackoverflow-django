@@ -243,7 +243,7 @@ class ReportReason(models.Model):
 
 class Report(models.Model):
     # The slug is thing's thing you want to report
-    slug = models.URLField()
+    slug = models.SlugField()
     reporter = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='reportPost')
     reasons = models.ForeignKey(ReportReason, on_delete=models.CASCADE, related_name='reportPost')
     description = models.TextField(blank=True)
