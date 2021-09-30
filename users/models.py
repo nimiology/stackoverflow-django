@@ -7,9 +7,9 @@ from Posts.utils import *
 class Wallet(models.Model):
     id = models.CharField(max_length=40, primary_key=True)
     following = models.ManyToManyField('Wallet', blank=True, related_name='followers')
-    reported = models.BooleanField(default=False)
     block = models.ManyToManyField('Wallet', blank=True, related_name='blockBy')
-    private = models.BooleanField()
+    ban = models.BooleanField(default=False)
+    private = models.BooleanField(default=False)
 
     def __str__(self):
         return self.id
@@ -253,18 +253,18 @@ class Report(models.Model):
     date = models.DateTimeField(auto_now_add=True)
 
 
+def EmployeePreSave(sender, instance, *args, **kwargs):
+    if instance.profilePic == '':
+        instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
+
+
+def CompanyPreSave(sender, instance, *args, **kwargs):
+    if instance.profilePic == '':
+        instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
+
+
 # TODO : Slug for notifications should set
-def Employee_presave(sender, instance, *args, **kwargs):
-    if instance.profilePic == '':
-        instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
-
-
-def Company_presave(sender, instance, *args, **kwargs):
-    if instance.profilePic == '':
-        instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
-
-
-def ApplyForJob_presave(sender, instance, *args, **kwargs):
+def ApplyForJobPreSave(sender, instance, *args, **kwargs):
     if instance.whoSentIt == 'e':
         Notif = Notification(profile=instance.company.profile,
                              text=f'{instance.employee.name} sent you request',
