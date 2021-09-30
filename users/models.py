@@ -230,6 +230,7 @@ class ApplyForJob(models.Model):
     sender = models.CharField(max_length=1, choices=SENDER_CHOICES)
     text = models.TextField()
     status = models.CharField(default='w', choices=STATUS, max_length=1)
+    non_cooperation = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.employee}-{self.company}'
