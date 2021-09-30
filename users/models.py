@@ -276,6 +276,6 @@ def ApplyForJobPreSave(sender, instance, *args, **kwargs):
     Notif.save()
 
 
-pre_save.connect(ApplyForJob_presave, ApplyForJob)
-pre_save.connect(Employee_presave, Employee)
-pre_save.connect(Company_presave, Company)
+pre_save.connect(ApplyForJobPreSave, ApplyForJob)
+pre_save.connect(EmployeePreSave, Employee)
+pre_save.connect(CompanyPreSave, Company)
