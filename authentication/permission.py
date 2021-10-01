@@ -113,3 +113,27 @@ class BlockedByUserWithPost(permissions.BasePermission):
                 raise ValidationError("You've been blocked")
 
         return request.method != 'GET'
+
+
+class CheckBan(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return not GetWallet(request).ban
+
+
+class CheckBlock(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        profile = GetWallet(request)
+        if not (profile in obj.profile.block.all()):
+            return True
+        else:
+            raise ValidationError("You've been blocked!")
+
+
+class IsItOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.profile == GetWallet(request)
+
+
+class IsItPostOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.profile == obj.post.profile

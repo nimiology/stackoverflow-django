@@ -36,6 +36,8 @@ def GetWallet(request):
             raise ValidationError('This profile has been banned')
     else:
         raise ValidationError('There is no Token!')
+
+
 def CheckAdmin(request):
     if 'Authorization' in request.headers:
         token = request.headers['Authorization']
