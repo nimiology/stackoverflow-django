@@ -13,4 +13,7 @@ urlpatterns = [
     path('comment/<int:pk>', CommentAPI.as_view()),
     path('post/<slug>/comments', PostCommentsAPI.as_view()),
 
+    path('hashtag', HashtagAPI.as_view()),
+    path('hashtag/<pk>', HashtagAPI.as_view()),
+    path('hashtag/<pk>/posts', HashtagPostAPI.as_view()),
 ]

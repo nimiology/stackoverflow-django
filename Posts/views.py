@@ -10,7 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Posts.serializer import *
-from authentication.permission import BlockedByUserWithPost, CheckBlock, IsItOwner, IsItPostOwner
+from authentication.permission import BlockedByUserWithPost, CheckBlock, IsItOwner, IsItPostOwner, IsAdmin, \
+    IsRequestMethodDelete, IsRequestMethodPost
 from users.utils import GetWallet, VerifyToken, CheckAdmin
 from rest_framework.exceptions import ValidationError
 
@@ -95,8 +96,7 @@ class Like(APIView):
 
 
 class CommentAPI(CreateModelMixin, RetrieveModelMixin,
-                 UpdateModelMixin, DestroyModelMixin,
-                 GenericAPIView):
+                 DestroyModelMixin, GenericAPIView):
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
     permission_classes = [CheckBlock, IsItOwner | IsItPostOwner]
@@ -108,10 +108,6 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
     def post(self, request, *args, **kwargs):
         """Create Comment"""
         return self.create(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        """Edit Comment"""
-        return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         """Delete Comment"""
@@ -133,21 +129,6 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
         self.check_object_permissions(obj=instance, request=self.request)
         return instance.delete()
 
-    # def perform_update(self, serializer):
-    #     wallet = GetWallet(self.request)
-    #     comment = GetObject(Comment, self.kwargs['id'])
-    #     if comment.profile.id == wallet.id:
-    #         comment.profile = comment.profile
-    #         comment.post = comment.post
-    #         if comment.replyToComment:
-    #             comment.replyToComment = comment.replyToComment.id
-    #         if comment.tag:
-    #             comment.tag = comment.tag.id
-    #     else:
-    #         raise ValidationError
-    #
-    #     return serializer.save(profile=wallet, post=post)
-
 
 class PostCommentsAPI(ListAPIView):
     serializer_class = CommentSerializer
@@ -160,4 +141,29 @@ class PostCommentsAPI(ListAPIView):
         post = get_object_or_404(Post, slug=slug)
         self.check_object_permissions(self.request, post)
         qs = post.comment.all()
+        return qs
+
+
+class HashtagAPI(GenericAPIView, CreateModelMixin, DestroyModelMixin):
+    serializer_class = HashtagSerializer
+    queryset = Hashtag.objects.all()
+    permission_classes = [IsAdmin & IsRequestMethodDelete | IsRequestMethodPost]
+
+    def post(self, request, *args, **kwargs):
+        """Create Hashtag"""
+        return self.create(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        """Delete Hashtag By Admin"""
+        return self.destroy(request, *args, **kwargs)
+
+
+class HashtagPostAPI(ListAPIView):
+    serializer_class = PostSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        """Get Hashtag's Post"""
+        hashtag = get_object_or_404(Hashtag, id=self.kwargs['pk'])
+        qs = hashtag.post.all()
         return qs

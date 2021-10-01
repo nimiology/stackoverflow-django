@@ -11,7 +11,7 @@ from authentication.utils import (
     check_token_valid,
     get_token_and_walletid,
 )
-from users.utils import GetWallet
+from users.utils import GetWallet, VerifyToken
 
 
 class CompanyPermission(permissions.BasePermission):
@@ -136,3 +136,23 @@ class IsItOwner(permissions.BasePermission):
 class IsItPostOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.profile == obj.post.profile
+
+
+# Is the user admin
+class IsAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if 'Authorization' in request.headers:
+            return VerifyToken(request.headers['Authorization'])['role'] == 'admin'
+        else:
+            raise ValidationError('There is no Token!')
+
+
+# Is the request method Delete?
+class IsRequestMethodDelete(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.method == 'DELETE'
+
+
+class IsRequestMethodPost(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.method == 'POST'
