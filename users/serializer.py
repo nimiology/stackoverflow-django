@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import ReadOnlyField
 
-from .models import *
+from users.models import *
 
 
 class TechSerializer(serializers.ModelSerializer):
@@ -59,7 +59,7 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['profile'] = ReadOnlyField(source='profile.authID')
+        self.fields['profile'] = ReadOnlyField(source='profile.id')
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
         self.fields['techWantsToWorkWith'] = TechSerializer(many=True, read_only=True)
         self.fields['techWantsToNotWorkWith'] = TechSerializer(many=True, read_only=True)
@@ -86,7 +86,7 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['profile'] = ReadOnlyField(source='profile.authID')
+        self.fields['profile'] = ReadOnlyField(source='profile.id')
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
         self.fields['industries'] = IndustriesSerializer(read_only=True, many=True)
         return super(CompanyProfileSerializer, self).to_representation(instance)
@@ -107,9 +107,7 @@ class JobOfferSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
-        fields = ['id',
-                  'authID',
-                  'reported']
+        fields = '__all__'
 
     def to_representation(self, instance):
         self.fields['employeeProfile'] = EmployeeProfileSerializer(read_only=True)

@@ -7,7 +7,9 @@ from Posts.utils import *
 class Wallet(models.Model):
     id = models.CharField(max_length=40, primary_key=True)
     following = models.ManyToManyField('Wallet', blank=True, related_name='followers')
-    reported = models.BooleanField(default=False)
+    block = models.ManyToManyField('Wallet', blank=True, related_name='blockBy')
+    ban = models.BooleanField(default=False)
+    private = models.BooleanField(default=False)
 
     def __str__(self):
         return self.id
@@ -228,6 +230,7 @@ class ApplyForJob(models.Model):
     sender = models.CharField(max_length=1, choices=SENDER_CHOICES)
     text = models.TextField()
     status = models.CharField(default='w', choices=STATUS, max_length=1)
+    non_cooperation = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.employee}-{self.company}'
@@ -243,25 +246,25 @@ class ReportReason(models.Model):
 
 class Report(models.Model):
     # The slug is thing's thing you want to report
-    slug = models.URLField()
+    slug = models.SlugField()
     reporter = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='reportPost')
     reasons = models.ForeignKey(ReportReason, on_delete=models.CASCADE, related_name='reportPost')
     description = models.TextField(blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
 
+def EmployeePreSave(sender, instance, *args, **kwargs):
+    if instance.profilePic == '':
+        instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
+
+
+def CompanyPreSave(sender, instance, *args, **kwargs):
+    if instance.profilePic == '':
+        instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
+
+
 # TODO : Slug for notifications should set
-def Employee_presave(sender, instance, *args, **kwargs):
-    if instance.profilePic == '':
-        instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
-
-
-def Company_presave(sender, instance, *args, **kwargs):
-    if instance.profilePic == '':
-        instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
-
-
-def ApplyForJob_presave(sender, instance, *args, **kwargs):
+def ApplyForJobPreSave(sender, instance, *args, **kwargs):
     if instance.whoSentIt == 'e':
         Notif = Notification(profile=instance.company.profile,
                              text=f'{instance.employee.name} sent you request',
@@ -273,6 +276,6 @@ def ApplyForJob_presave(sender, instance, *args, **kwargs):
     Notif.save()
 
 
-pre_save.connect(ApplyForJob_presave, ApplyForJob)
-pre_save.connect(Employee_presave, Employee)
-pre_save.connect(Company_presave, Company)
+pre_save.connect(ApplyForJobPreSave, ApplyForJob)
+pre_save.connect(EmployeePreSave, Employee)
+pre_save.connect(CompanyPreSave, Company)

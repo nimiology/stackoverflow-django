@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models.signals import pre_save, m2m_changed
 
 from users.models import Employee, Company, Wallet, Notification
-from .utils import *
+from Posts.utils import *
 
 
 class Hashtag(models.Model):
@@ -18,7 +18,7 @@ class Post(models.Model):
     pic = models.FileField(upload_to=upload_file_Post, blank=True, validators=[PictureAndVideoValidator])
     tag = models.ManyToManyField(Wallet, blank=True, related_name='tagInPost')
     description = models.TextField(blank=True)
-    hashtag = models.ManyToManyField(Hashtag, related_name='post')
+    hashtag = models.ManyToManyField(Hashtag, blank=True, related_name='post')
     like = models.ManyToManyField(Wallet, blank=True, related_name='likes')
     date = models.DateTimeField(auto_now_add=True)
 

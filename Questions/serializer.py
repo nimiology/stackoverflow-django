@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import ReadOnlyField
 
-from .models import *
+from Questions.models import *
 from users.serializer import ProfileSerializer, TechSerializer, CategorySerializer
 
 

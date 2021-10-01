@@ -8,11 +8,9 @@ from authentication.serializer import (
 )
 import requests
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.views import APIView
 from users import models
 from rest_framework import exceptions
-import json
 from authentication.permission import AdminPermission
 from authentication.utils import (
     HOST,
@@ -77,9 +75,8 @@ class Register(APIView):
 
             response = requests.post(
                 url, dict(serializer.validated_data), headers=headers)
-
+            response_data = response.json()
             try:
-                response_data = response.json()
                 wallet_id = response_data['data']['wallet']['id']
             except:
                 return Response(response_data, status=response.status_code)
@@ -96,8 +93,10 @@ class Register(APIView):
                 elif kwargs["type"] == "employee":
                     new_user = models.Employee.objects.create(
                         wallet=new_wallet)
-                new_user.save()
+                else:
+                    raise exceptions.ValidationError('type is not acceptable')
 
+                new_user.save()
             return Response(response.json(), status=response.status_code)
 
         else:
