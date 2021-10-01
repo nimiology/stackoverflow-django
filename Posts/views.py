@@ -155,6 +155,7 @@ class PostCommentsAPI(ListAPIView):
     permission_classes = [CheckBlock]
 
     def get_queryset(self):
+        """Get Post's Comments"""
         slug = self.kwargs['slug']
         post = get_object_or_404(Post, slug=slug)
         self.check_object_permissions(self.request, post)
