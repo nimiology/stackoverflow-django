@@ -54,7 +54,7 @@ class Tech(models.Model):
         return self.title
 
 
-class Role(models.Model):
+class Job(models.Model):
     title = models.CharField(max_length=1024, unique=True)
     industry = models.ForeignKey(Industries, blank=True, on_delete=models.CASCADE, related_name='role')
 
@@ -97,10 +97,21 @@ class CompanyDocument(models.Model):
 class JobOffer(models.Model):
     relatedName = 'jobOffer'
 
+    JOB_TYPE_CHOICES = (
+        ('F', 'Full-time'),
+        ('C', 'Contract'),
+        ('I', 'Internship'),
+        ('R', 'Remote'),
+    )
+
+    title = models.CharField(max_length=1024)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name=relatedName)
+    job = models.ManyToManyField(Job, blank=True, related_name=relatedName)
     tech = models.ManyToManyField(Tech, blank=True, related_name=relatedName)
     category = models.ManyToManyField(Category, related_name=relatedName)
     count = models.PositiveIntegerField()
+    jobType = models.CharField(max_length=1, choices=JOB_TYPE_CHOICES, blank=True)
+    salary = models.CharField(max_length=1024, blank=True)
     text = models.TextField(blank=True)
 
 
@@ -142,7 +153,7 @@ class Employee(models.Model):
     techWantsToWorkWith = models.ManyToManyField(Tech, blank=True, related_name='employeeProfileTechWantsToWorkWith')
     techWantsToNotWorkWith = models.ManyToManyField(Tech, blank=True,
                                                     related_name='employeeProfileTechWantsToNotWorkWith')
-    role = models.ManyToManyField(Role, blank=True, related_name=relatedName)
+    role = models.ManyToManyField(Job, blank=True, related_name=relatedName)
     industries = models.ManyToManyField(Industries, blank=True, related_name='employeeProfileIndustries')
     industriesToExclude = models.ManyToManyField(Industries, blank=True,
                                                  related_name='employeeProfileIndustriesToExclude')
@@ -231,6 +242,7 @@ class ApplyForJob(models.Model):
     text = models.TextField()
     status = models.CharField(default='w', choices=STATUS, max_length=1)
     non_cooperation = models.BooleanField(default=False)
+    nonCooperationDate = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.employee}-{self.company}'
