@@ -1,6 +1,6 @@
 from django.http import Http404
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView, get_object_or_404
 from rest_framework.mixins import (CreateModelMixin,
                                    RetrieveModelMixin,
                                    ListModelMixin,
@@ -10,38 +10,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Posts.serializer import *
-from authentication.permission import BlockedByUserWithPost
+from authentication.permission import BlockedByUserWithPost, CheckBlock, IsItOwner, IsItPostOwner
 from users.utils import GetWallet, VerifyToken, CheckAdmin
 from rest_framework.exceptions import ValidationError
-
-
-def GetObject(obj, slug):
-    try:
-        post = obj.objects.get(slug=slug)
-    except obj.DoesNotExist:
-        raise Http404
-    return post
-
-
-def CheckBlock(profile, post):
-    if not (profile in post.profile.block.all()):
-        return False
-    else:
-        raise ValidationError("You've been blocked!")
-
-
-def get_object_by_id(cl, id):
-    try:
-        return cl.objects.get(id=id)
-    except cl.DoesNotExist:
-        raise Http404
 
 
 class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
     lookup_field = 'slug'
-    permission_classes = [BlockedByUserWithPost]
+    permission_classes = [BlockedByUserWithPost, IsItOwner]
 
     def get(self, request, *args, **kwargs):
         """Get Post"""
@@ -71,10 +49,8 @@ class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAP
 
     def perform_destroy(self, instance):
         """Is he him?"""
-        if instance.profile == GetWallet(self.request):
-            return instance.delete()
-        else:
-            raise ValidationError('access denied!')
+        self.check_object_permissions(obj=instance, request=self.request)
+        return instance.delete()
 
 
 class UserPostsAPI(ListAPIView):
@@ -109,11 +85,13 @@ class Like(APIView):
         """Like"""
         slug = kwargs['slug']
         profile = GetWallet(request)
-        post = GetObject(Post, slug)
-        CheckBlock(profile, post)
-        post.like.add(profile)
-        data = PostSerializer(post).data
-        return Response(data, status=status.HTTP_200_OK)
+        post = get_object_or_404(Post, slug=slug)
+        if not (profile in post.profile.block.all()):
+            post.like.add(profile)
+            data = PostSerializer(post).data
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+            raise ValidationError("You've been blocked!")
 
 
 class CommentAPI(CreateModelMixin, RetrieveModelMixin,
@@ -121,6 +99,7 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
                  GenericAPIView):
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
+    permission_classes = [CheckBlock, IsItOwner | IsItPostOwner]
 
     def get(self, request, *args, **kwargs):
         """Get Comment"""
@@ -140,10 +119,10 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
 
     def perform_create(self, serializer):
         wallet = GetWallet(self.request)
-        post = GetObject(Post, self.kwargs['slug'])
-        CheckBlock(wallet, post)
+        post = get_object_or_404(Post, slug=self.kwargs['slug'])
+        self.check_object_permissions(self.request, post)
         if 'replyToComment' in self.request.data:
-            replyTOComment = get_object_by_id(Comment, self.request.data['replyToComment'])
+            replyTOComment = get_object_or_404(Comment, id=self.request.data['replyToComment'])
             replyToCommentPost = replyTOComment.post.id
             if replyToCommentPost != post:
                 raise ValidationError("Upper comment didn't found")
@@ -151,10 +130,9 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
 
     def perform_destroy(self, instance):
         """Is he him?"""
-        if instance.profile == GetWallet(self.request) or instance.profile == instance.post.profile:
-            return instance.delete()
-        else:
-            raise ValidationError('access denied!')
+        self.check_object_permissions(obj=instance, request=self.request)
+        return instance.delete()
+
     # def perform_update(self, serializer):
     #     wallet = GetWallet(self.request)
     #     comment = GetObject(Comment, self.kwargs['id'])
@@ -169,3 +147,17 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
     #         raise ValidationError
     #
     #     return serializer.save(profile=wallet, post=post)
+
+
+class PostCommentsAPI(ListAPIView):
+    serializer_class = CommentSerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [CheckBlock]
+
+    def get_queryset(self):
+        """Get Post's Comments"""
+        slug = self.kwargs['slug']
+        post = get_object_or_404(Post, slug=slug)
+        self.check_object_permissions(self.request, post)
+        qs = post.comment.all()
+        return qs

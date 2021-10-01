@@ -100,6 +100,7 @@ class ReadOnly(permissions.BasePermission):
         return request.method in SAFE_METHODS
 
 
+# is he already blocked by Post owner?
 class BlockedByUserWithPost(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method == 'GET':
@@ -113,3 +114,25 @@ class BlockedByUserWithPost(permissions.BasePermission):
                 raise ValidationError("You've been blocked")
 
         return request.method != 'GET'
+
+
+# is he already blocked by owner?
+class CheckBlock(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        profile = GetWallet(request)
+        if not (profile in obj.profile.block.all()):
+            return True
+        else:
+            raise ValidationError("You've been blocked!")
+
+
+# Is he owner of the object?
+class IsItOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.profile == GetWallet(request)
+
+
+# Is he owner of the post of the object?
+class IsItPostOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.profile == obj.post.profile
