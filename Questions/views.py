@@ -10,7 +10,7 @@ from rest_framework.mixins import (CreateModelMixin,
 from Posts.utils import StandardResultsSetPagination
 from Questions.models import Question, Answer
 from Questions.serializer import QuestionSerializer, AnswerSerializer
-from authentication.permission import IsItOwner
+from authentication.permission import IsItOwner, IsAdmin, DeleteObjectByAdminOrOwner
 from users.utils import GetWallet
 
 
@@ -20,6 +20,7 @@ class QuestionAPI(GenericAPIView, CreateModelMixin,
     serializer_class = QuestionSerializer
     queryset = Question.objects.all()
     lookup_field = 'slug'
+    permission_classes = []
 
     def get(self, request, *args, **kwargs):
         """Get Question"""
@@ -31,10 +32,12 @@ class QuestionAPI(GenericAPIView, CreateModelMixin,
 
     def put(self, request, *args, **kwargs):
         """Edit Question"""
+        self.permission_classes = [IsItOwner]
         return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         """Delete Question"""
+        self.permission_classes = [DeleteObjectByAdminOrOwner]
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -42,13 +45,11 @@ class QuestionAPI(GenericAPIView, CreateModelMixin,
         return serializer.save(profile=profile)
 
     def perform_update(self, serializer):
-        self.permission_classes = [IsItOwner]
         instance = get_object_or_404(Question, slug=self.kwargs['slug'])
         self.check_object_permissions(self.request, instance)
         return serializer.save(profile=instance.profile)
 
     def perform_destroy(self, instance):
-        self.permission_classes = [IsItOwner]
         self.check_object_permissions(self.request, instance)
         return instance.delete()
 
@@ -111,10 +112,12 @@ class AnswerAPI(GenericAPIView, CreateModelMixin,
 
     def put(self, request, *args, **kwargs):
         """Edit Answer"""
+        self.permission_classes = [IsItOwner]
         return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         """Delete Answer"""
+        self.permission_classes = [DeleteObjectByAdminOrOwner]
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -124,13 +127,11 @@ class AnswerAPI(GenericAPIView, CreateModelMixin,
         return serializer.save(profile=profile, question=question)
 
     def perform_update(self, serializer):
-        self.permission_classes = [IsItOwner]
         instance = get_object_or_404(Answer, id=self.kwargs['pk'])
         self.check_object_permissions(self.request, instance)
         return serializer.save(profile=instance.profile, question=instance.question)
 
     def perform_destroy(self, instance):
-        self.permission_classes = [IsItOwner]
         self.check_object_permissions(self.request, instance)
         return instance.delete()
 

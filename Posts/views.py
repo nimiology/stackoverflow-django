@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from Posts.serializer import *
 from authentication.permission import BlockedByUserWithPost, CheckBlock, IsItOwner, IsItPostOwner, IsAdmin, \
-    IsRequestMethodDelete, IsRequestMethodPost
+    IsRequestMethodDelete, IsRequestMethodPost, DeleteObjectByAdminOrOwner
 from users.utils import GetWallet
 from rest_framework.exceptions import ValidationError
 
@@ -29,6 +29,7 @@ class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAP
 
     def delete(self, request, *args, **kwargs):
         """Delete Post"""
+        self.permission_classes = [DeleteObjectByAdminOrOwner]
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -111,6 +112,7 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         """Delete Comment"""
+        self.permission_classes = [IsItPostOwner | DeleteObjectByAdminOrOwner]
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -145,7 +147,6 @@ class CommentLike(APIView):
             return Response(data, status=status.HTTP_200_OK)
         else:
             raise ValidationError("You've been blocked!")
-
 
 
 class PostCommentsAPI(ListAPIView):

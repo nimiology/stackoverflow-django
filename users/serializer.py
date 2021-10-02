@@ -161,11 +161,12 @@ class ReportReasonsSerializer(serializers.ModelSerializer):
 
 
 class ReportSerializer(serializers.ModelSerializer):
+    reporter = ProfileSerializer(read_only=True, required=False)
+
     class Meta:
         model = Report
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['reporter'] = ProfileSerializer(read_only=True)
-        self.fields['reasons'] = ReportReasonsSerializer(read_only=True)
+        self.fields['reason'] = ReportReasonsSerializer(read_only=True)
         return super(ReportSerializer, self).to_representation(instance)

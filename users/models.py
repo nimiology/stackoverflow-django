@@ -230,7 +230,7 @@ class ApplyForJob(models.Model):
         ('c', 'company')
     )
 
-    STATUS = (
+    STATUS_CHOICES = (
         ('w', 'waiting'),
         ('a', 'accepted'),
         ('r', 'rejected')
@@ -240,7 +240,7 @@ class ApplyForJob(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name=relatedName)
     sender = models.CharField(max_length=1, choices=SENDER_CHOICES)
     text = models.TextField()
-    status = models.CharField(default='w', choices=STATUS, max_length=1)
+    status = models.CharField(default='w', choices=STATUS_CHOICES, max_length=1)
     non_cooperation = models.BooleanField(default=False)
     nonCooperationDate = models.BooleanField(default=False)
 
@@ -257,10 +257,19 @@ class ReportReason(models.Model):
 
 
 class Report(models.Model):
+    TYPE_CHOICE = (
+        ('p', 'post'),
+        ('c', 'comment'),
+        ('q', 'question'),
+        ('a', 'answer'),
+        ('w', 'wallet')
+    )
+
+    type = models.CharField(max_length=1, choices=TYPE_CHOICE)
     # The slug is thing's thing you want to report
     slug = models.SlugField()
-    reporter = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='reportPost')
-    reasons = models.ForeignKey(ReportReason, on_delete=models.CASCADE, related_name='reportPost')
+    reporter = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='report')
+    reason = models.ForeignKey(ReportReason, on_delete=models.CASCADE, related_name='report')
     description = models.TextField(blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
@@ -273,6 +282,7 @@ def EmployeePreSave(sender, instance, *args, **kwargs):
 def CompanyPreSave(sender, instance, *args, **kwargs):
     if instance.profilePic == '':
         instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
+
 
 
 # TODO : Slug for notifications should set
