@@ -11,9 +11,10 @@ urlpatterns = [
 
     path('post/<slug>/comment', CommentAPI.as_view()),
     path('comment/<int:pk>', CommentAPI.as_view()),
+    path('comment/<int:pk>/like', CommentLike.as_view()),
     path('post/<slug>/comments', PostCommentsAPI.as_view()),
 
     path('hashtag', HashtagAPI.as_view()),
-    path('hashtag/<pk>', HashtagAPI.as_view()),
-    path('hashtag/<pk>/posts', HashtagPostAPI.as_view()),
+    path('hashtag/<int:pk>', HashtagAPI.as_view()),
+    path('hashtag/<int:pk>/posts', HashtagPostAPI.as_view()),
 ]

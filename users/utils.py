@@ -37,28 +37,3 @@ def GetWallet(request):
     else:
         raise ValidationError('There is no Token!')
 
-
-def CheckAdmin(request):
-    if 'Authorization' in request.headers:
-        token = request.headers['Authorization']
-        verifyToken = VerifyToken(token)
-        if verifyToken['role'] == 'admin':
-            return
-        else:
-            raise ValidationError('This is Not Admin!')
-
-    else:
-        raise ValidationError('There is no Token!')
-
-
-def CheckSuperAdmin(request):
-    if 'Authorization' in request.headers:
-        token = request.headers['Authorization']
-        verifyToken = VerifyToken(token)
-        if verifyToken['role'] == 'super_admin':
-            return
-        else:
-            raise ValidationError('This is Not Admin!')
-
-    else:
-        raise ValidationError('There is no Token!')

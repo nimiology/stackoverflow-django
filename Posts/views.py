@@ -1,10 +1,7 @@
-from django.http import Http404
 from rest_framework import status
 from rest_framework.generics import GenericAPIView, ListAPIView, get_object_or_404
 from rest_framework.mixins import (CreateModelMixin,
                                    RetrieveModelMixin,
-                                   ListModelMixin,
-                                   UpdateModelMixin,
                                    DestroyModelMixin)
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,7 +9,7 @@ from rest_framework.views import APIView
 from Posts.serializer import *
 from authentication.permission import BlockedByUserWithPost, CheckBlock, IsItOwner, IsItPostOwner, IsAdmin, \
     IsRequestMethodDelete, IsRequestMethodPost
-from users.utils import GetWallet, VerifyToken, CheckAdmin
+from users.utils import GetWallet
 from rest_framework.exceptions import ValidationError
 
 
@@ -88,7 +85,10 @@ class Like(APIView):
         profile = GetWallet(request)
         post = get_object_or_404(Post, slug=slug)
         if not (profile in post.profile.block.all()):
-            post.like.add(profile)
+            if not profile in post.like.all():
+                post.like.add(profile)
+            else:
+                post.like.remove(profile)
             data = PostSerializer(post).data
             return Response(data, status=status.HTTP_200_OK)
         else:
@@ -128,6 +128,24 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
         """Is he him?"""
         self.check_object_permissions(obj=instance, request=self.request)
         return instance.delete()
+
+
+class CommentLike(APIView):
+    def post(self, request, *args, **kwargs):
+        """Like"""
+        id = kwargs['pk']
+        profile = GetWallet(request)
+        comment = get_object_or_404(Comment, id=id)
+        if not (profile in comment.profile.block.all()):
+            if not profile in comment.like.all():
+                comment.like.add(profile)
+            else:
+                comment.like.remove(profile)
+            data = CommentSerializer(comment).data
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+            raise ValidationError("You've been blocked!")
+
 
 
 class PostCommentsAPI(ListAPIView):

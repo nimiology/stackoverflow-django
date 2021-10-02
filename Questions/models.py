@@ -15,8 +15,8 @@ from users.models import (Tech,
 class Question(models.Model):
     relatedName = 'question'
 
-    title = models.CharField(max_length=2048)
     profile = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name=relatedName)
+    title = models.CharField(max_length=2048)
     category = models.ManyToManyField(Category, blank=True, related_name=relatedName)
     tech = models.ManyToManyField(Tech, blank=True, related_name=relatedName)
     text = models.TextField()
@@ -45,53 +45,50 @@ class Answer(models.Model):
         return f'{self.profile}-{self.question.title}'
 
 
-def Question_presave(sender, instance, *args, **kwargs):
+def QuestionPreSave(sender, instance, *args, **kwargs):
     if instance.slug == '':
         instance.slug = slug_genrator(Question)
 
 
-def Answer_presave(sender, instance, *args, **kwargs):
+def AnswerPreSave(sender, instance, *args, **kwargs):
     Notif = Notification(profile=instance.question.profile,
-                         notification='You have a new answer',
-                         slug=instance.question.slug,
-                         slugTo='q')
+                         text='You have a new answer',
+                         slug=f'question/{instance.question.slug}')
     Notif.save()
 
 
 def AnswerUpVotePreSave(sender, instance, *args, **kwargs):
-    Notif = Notification(profile=instance.answer.question.profile,
-                         notification='Your Answer Voted Up',
-                         slug=instance.answer.question.slug,
-                         slugTo='q')
+    Notif = Notification(profile=instance.question.profile,
+                         text='Your Answer Voted Up',
+                         slug=f'question/{instance.question.slug}')
+
     Notif.save()
 
 
 def AnswerDownVotePreSave(sender, instance, *args, **kwargs):
     Notif = Notification(profile=instance.question.profile,
-                         notification='Your Answer Voted Down',
-                         slug=instance.question.slug,
-                         slugTo='q')
+                         text='Your Answer Voted Down',
+                         slug = f'question/{instance.question.slug}')
+
     Notif.save()
 
 
 def QuestionDownVotePreSave(sender, instance, *args, **kwargs):
-    Notif = Notification(profile=instance.answer.question.profile,
-                         notification='Your Question Voted Down',
-                         slug=instance.answer.question.slug,
-                         slugTo='q')
+    Notif = Notification(profile=instance.profile,
+                         text='Your Question Voted Down',
+                         slug=f'question/{instance.slug}')
     Notif.save()
 
 
 def QuestionUpVotePreSave(sender, instance, *args, **kwargs):
-    Notif = Notification(profile=instance.question.profile,
-                         notification='Your Question Voted Up',
-                         slug=instance.question.slug,
-                         slugTo='q')
+    Notif = Notification(profile=instance.profile,
+                         text='Your Question Voted Up',
+                         slug=f'question/{instance.slug}')
     Notif.save()
 
 
-pre_save.connect(Question_presave, sender=Question)
-pre_save.connect(Answer_presave, sender=Answer)
+pre_save.connect(QuestionPreSave, sender=Question)
+pre_save.connect(AnswerPreSave, sender=Answer)
 m2m_changed.connect(QuestionUpVotePreSave, sender=Question.upVote.through)
 m2m_changed.connect(AnswerUpVotePreSave, sender=Answer.upVote.through)
 m2m_changed.connect(AnswerDownVotePreSave, sender=Answer.downVote.through)
