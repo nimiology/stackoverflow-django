@@ -1,7 +1,6 @@
 from django.http import Http404
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import SAFE_METHODS
 
 from Posts.models import Post
@@ -120,10 +119,13 @@ class BlockedByUserWithPost(permissions.BasePermission):
 class IsPrivateWithPost(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method == 'GET':
-            obj = get_object_or_404(Post, slug=view.kwargs['slug'])
+            try:
+                obj = Post.objects.get(slug=view.kwargs['slug']).profile
+            except Post.DoesNotExist:
+                raise Http404
             requestOwner = GetWallet(request)
             if obj.profile.private:
-                if obj.profile != requestOwner:
+                if GetWallet(request) != requestOwner:
                     if obj.profile in requestOwner.following.all():
                         return True
                     else:

@@ -7,10 +7,11 @@ from authentication.serializer import (
     FilterSerializer,
 )
 import requests
-from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.views import APIView
 from users import models
 from rest_framework import exceptions
+import json
 from authentication.permission import AdminPermission
 from authentication.utils import (
     HOST,
@@ -20,6 +21,7 @@ from authentication.utils import (
     get_url_with_service_and_role,
     get_url_admin_or_user,
 )
+from rest_framework.response import Response
 
 
 # * Auth : Get One User object
@@ -75,13 +77,10 @@ class Register(APIView):
 
             response = requests.post(
                 url, dict(serializer.validated_data), headers=headers)
-            response_data = response.json()
-            try:
-                wallet_id = response_data['data']['wallet']['id']
-            except:
-                return Response(response_data, status=response.status_code)
+            js_response = response.json()
+            if js_response['status'] != False:
 
-            if response.status_code == 200:
+                wallet_id = js_response['data']['wallet']['id']
 
                 # ? Create wallet object
                 new_wallet = models.Wallet.objects.create(id=wallet_id)
@@ -89,16 +88,18 @@ class Register(APIView):
 
                 # ? Create user object
                 if kwargs["type"] == "company":
-                    new_user = models.Company.objects.create(wallet=new_wallet)
+                    new_user = models.Company.objects.create(
+                        profile=new_wallet)
                 elif kwargs["type"] == "employee":
                     new_user = models.Employee.objects.create(
-                        wallet=new_wallet)
+                        profile=new_wallet)
                 else:
                     raise exceptions.ValidationError('type is not acceptable')
 
-                new_user.save()
-            return Response(response.json(), status=response.status_code)
-
+                return Response(response.json(), status=response.status_code)
+            else:
+                raise exceptions.ValidationError(
+                    detail=js_response, code=response.status_code)
         else:
             raise exceptions.ValidationError(detail="Invalid data", code=400)
 
