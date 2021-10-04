@@ -15,7 +15,8 @@ def FindWallet(id):
 
 def VerifyToken(token):
     try:
-        tokenDecoded = jwt.decode(token, config('SECRET'), algorithms=["HS256"])
+        tokenDecoded = jwt.decode(token, config(
+            'AUTH_SECRET_KEY'), algorithms=["HS256"])
         print(tokenDecoded)
         if tokenDecoded['service'] == config('SERVICE_ID'):
             return tokenDecoded
@@ -36,4 +37,3 @@ def GetWallet(request):
             raise ValidationError('This profile has been banned')
     else:
         raise ValidationError('There is no Token!')
-

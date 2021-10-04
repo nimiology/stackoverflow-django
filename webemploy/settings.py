@@ -124,5 +124,6 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "static_cdn", "media_root")
 
-# ! admin :
-# user:qa_admin | pass:qa_admin
+# ! info :
+# sevice --> [name : qa_webemploy | id:3da43c95-90f6-4b5d-b2eb-04a08fbd439b]
+# admin --> [name : qa_admin | password : qa_admin]

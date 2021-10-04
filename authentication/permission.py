@@ -1,16 +1,15 @@
-from django.http import Http404
 from rest_framework import permissions
-from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import SAFE_METHODS
-
-from Posts.models import Post
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from users import models
 from authentication.utils import (
-    request_wallet,
-    check_wallet_id,
-    check_token_valid,
-    get_token_and_walletid,
+    get_token,
+    get_wallet,
+    verify_token,
+    verify_token_for_admin,
 )
+from Posts.models import Post
+from django.http import Http404
+from rest_framework.exceptions import ValidationError
 from users.utils import GetWallet, VerifyToken
 
 
@@ -18,17 +17,12 @@ class CompanyPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
 
-        # * Get Token & Wallet_if from request :
-        token, wallet_id = get_token_and_walletid(request)
+        token = get_token(request)
 
-        # * Check wallet with database :
-        if check_wallet_id(models.Company, wallet_id):
+        if verify_token(token):
+            wallet = get_wallet(token)
 
-            # * Check token validations :
-            if check_token_valid(token):
-                return True
-            else:
-                return False
+            return models.Company.objects.filter(profile=wallet).exists()
 
         else:
             return False
@@ -38,16 +32,13 @@ class EmployeePermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
 
-        # * Get Token & Wallet_if from request :
-        token, wallet_id = get_token_and_walletid(request)
-        # * Check wallet with database :
-        if check_wallet_id(models.Seller, wallet_id):
+        token = get_token(request)
 
-            # * Check token validations :
-            if check_token_valid(token):
-                return True
-            else:
-                return False
+        if verify_token(token):
+            wallet = get_wallet(token)
+
+            return models.Employee.objects.filter(profile=wallet).exists()
+
         else:
             return False
 
@@ -56,43 +47,21 @@ class AdminPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
 
-        # * Get Token & Wallet_if from request :
-        token, wallet_id = get_token_and_walletid(request)
+        token = get_token(request)
 
-        # * Check token validations :
-        if check_token_valid(token, is_admin=True):
-            return True
-        else:
-            return False
+        return verify_token_for_admin(token)
 
 
-class Update_for_Admin_Get_for_User(permissions.BasePermission):
+class AdminOrUserReadOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
 
-        # * Get Token & Wallet_if from request :
-        token, wallet_id = get_token_and_walletid(request)
+        token = get_token(request)
 
         if request.method in SAFE_METHODS:
             return True
-
-        elif request.method == "POST":
-            if check_token_valid(token, is_admin=True):
-                return True
-
-        return False
-
-
-class Admin_And_User(permissions.BasePermission):
-
-    def has_permission(self, request, view):
-        # * Get Token & Wallet_if from request :
-        token, wallet_id = get_token_and_walletid(request)
-
-        if check_token_valid(token, is_admin=True) or check_token_valid(token):
-            return True
-
-        return False
+        else:
+            return verify_token_for_admin(token)
 
 
 class ReadOnly(permissions.BasePermission):
