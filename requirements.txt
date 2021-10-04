@@ -13,3 +13,6 @@ pytz==2021.1
 requests==2.26.0
 sqlparse==0.4.2
 urllib3==1.26.7
+
+PyJWT~=2.1.0
+django-filter~=21.1

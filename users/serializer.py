@@ -9,8 +9,12 @@ class TechSerializer(serializers.ModelSerializer):
         model = Tech
         fields = '__all__'
 
+    def to_representation(self, instance):
+        self.fields['industry'] = IndustriesSerializer(read_only=True)
+        return super(TechSerializer, self).to_representation(instance)
 
-class RoleSerializer(serializers.ModelSerializer):
+
+class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         fields = '__all__'
@@ -22,14 +26,22 @@ class IndustriesSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class VerifyIndustriesSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(required=False)
+
+    class Meta:
+        model = Industries
+        fields = '__all__'
+
+
 class WorkExperienceSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkExperience
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['profile'] = ProfileSerializer(read_only=True)
-        self.fields['tech'] = TechSerializer(many=True, read_only=True)
+        self.fields['profile'] = WalletSerializer(read_only=True)
+        self.fields['tech'] = VerifyTechSerializer(many=True, read_only=True)
         return super(WorkExperienceSerializer, self).to_representation(instance)
 
 
@@ -39,7 +51,7 @@ class EducationalBackgroundSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['profile'] = ProfileSerializer(read_only=True)
+        self.fields['profile'] = WalletSerializer(read_only=True)
         return super(EducationalBackgroundSerializer, self).to_representation(instance)
 
 
@@ -49,7 +61,7 @@ class AchievementSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['profile'] = ProfileSerializer(read_only=True)
+        self.fields['profile'] = WalletSerializer(read_only=True)
         return super(AchievementSerializer, self).to_representation(instance)
 
 
@@ -61,8 +73,8 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         self.fields['profile'] = ReadOnlyField(source='profile.id')
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
-        self.fields['techWantsToWorkWith'] = TechSerializer(many=True, read_only=True)
-        self.fields['techWantsToNotWorkWith'] = TechSerializer(many=True, read_only=True)
+        self.fields['techWantsToWorkWith'] = VerifyTechSerializer(many=True, read_only=True)
+        self.fields['techWantsToNotWorkWith'] = VerifyTechSerializer(many=True, read_only=True)
         self.fields['role'] = RoleSerializer(many=True, read_only=True)
         self.fields['industries'] = IndustriesSerializer(many=True, read_only=True)
         self.fields['industriesToExclude'] = IndustriesSerializer(many=True, read_only=True)
@@ -75,9 +87,24 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
+        self.fields['industry'] = IndustriesSerializer(read_only=True)
         self.fields['upperCategory'] = ReadOnlyField(source='upperCategory.title')
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
         return super(CategorySerializer, self).to_representation(instance)
+
+
+class VerifyCategorySerializer(serializers.ModelSerializer):
+    title = serializers.CharField(required=False)
+
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        self.fields['industry'] = IndustriesSerializer(read_only=True)
+        self.fields['upperCategory'] = ReadOnlyField(source='upperCategory.title')
+        self.fields['category'] = CategorySerializer(read_only=True, many=True)
+        return super(VerifyCategorySerializer, self).to_representation(instance)
 
 
 class CompanyProfileSerializer(serializers.ModelSerializer):
@@ -99,24 +126,22 @@ class JobOfferSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         self.fields['company'] = CompanyProfileSerializer(read_only=True)
-        self.fields['tech'] = TechSerializer(read_only=True, many=True)
+        self.fields['tech'] = VerifyTechSerializer(read_only=True, many=True)
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
         return super(JobOfferSerializer, self).to_representation(instance)
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class WalletSerializer(serializers.ModelSerializer):
+    employeeProfile = EmployeeProfileSerializer(read_only=True)
+    companyProfile = CompanyProfileSerializer(read_only=True)
+
     class Meta:
         model = Wallet
         fields = '__all__'
 
-    def to_representation(self, instance):
-        self.fields['employeeProfile'] = EmployeeProfileSerializer(read_only=True)
-        self.fields['companyProfile'] = CompanyProfileSerializer(read_only=True)
-        return super(ProfileSerializer, self).to_representation(instance)
-
 
 class FollowingSerializer(serializers.ModelSerializer):
-    following = ProfileSerializer(many=True, read_only=True)
+    following = WalletSerializer(many=True, read_only=True)
 
     class Meta:
         model = Wallet
@@ -129,7 +154,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['profile'] = ProfileSerializer(read_only=True)
+        self.fields['profile'] = WalletSerializer(read_only=True)
         return super(NotificationSerializer, self).to_representation(instance)
 
 
@@ -161,7 +186,7 @@ class ReportReasonsSerializer(serializers.ModelSerializer):
 
 
 class ReportSerializer(serializers.ModelSerializer):
-    reporter = ProfileSerializer(read_only=True, required=False)
+    reporter = WalletSerializer(read_only=True, required=False)
 
     class Meta:
         model = Report
@@ -170,3 +195,12 @@ class ReportSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         self.fields['reason'] = ReportReasonsSerializer(read_only=True)
         return super(ReportSerializer, self).to_representation(instance)
+
+
+class FollowRequestSerializer(serializers.ModelSerializer):
+    sender = WalletSerializer(read_only=True, required=False)
+    receiver = WalletSerializer(read_only=True, required=False)
+
+    class Meta:
+        model = FollowRequest
+        fields = '__all__'

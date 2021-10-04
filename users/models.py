@@ -15,6 +15,20 @@ class Wallet(models.Model):
         return self.id
 
 
+class FollowRequest(models.Model):
+    STATUS_CHOICES = [
+        ('a', 'accepted'),
+        ('w', "waiting"),
+        ('r', 'rejected'),
+    ]
+    sender = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='followRequestSent')
+    receiver = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='followRequests')
+    status = models.CharField(choices=STATUS_CHOICES, default='w', max_length=1)
+
+    def __str__(self):
+        return f'{self.sender} - {self.receiver}'
+
+
 class Industries(models.Model):
     STATUS_CHOICES = [
         ('a', 'accepted'),
@@ -36,9 +50,9 @@ class Category(models.Model):
         ('r', 'rejected'),
     ]
 
-    industry = models.ForeignKey(Industries, blank=True, on_delete=models.CASCADE, related_name='category')
+    industry = models.ForeignKey(Industries, null=True,  on_delete=models.CASCADE, related_name='category')
     title = models.CharField(max_length=500, unique=True)
-    upperCategory = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,
+    upperCategory = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True,
                                       related_name='reverseCategory')
     status = models.CharField(choices=STATUS_CHOICES, default='w', max_length=1)
 
@@ -71,7 +85,7 @@ class Company(models.Model):
         ('r', 'rejected'),
     ]
 
-    profile = models.OneToOneField("Wallet", on_delete=models.CASCADE)
+    profile = models.OneToOneField("Wallet", on_delete=models.CASCADE, related_name=relatedName)
     profilePic = models.ImageField(upload_to=upload_profilePic, blank=True)
     companyName = models.CharField(max_length=2048)
     about = models.TextField(blank=True)
@@ -274,6 +288,14 @@ class Report(models.Model):
     date = models.DateTimeField(auto_now_add=True)
 
 
+def FollowRequestPreSave(sender, instance, *args, **kwargs):
+    notif = Notification(profile=instance.receiver,
+                         text="You have a new follow request")
+    notif.save()
+    if instance.status == 'a':
+        instance.sender.following.add(instance.receiver)
+
+
 def EmployeePreSave(sender, instance, *args, **kwargs):
     if instance.profilePic == '':
         instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
@@ -284,8 +306,6 @@ def CompanyPreSave(sender, instance, *args, **kwargs):
         instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
 
 
-
-# TODO : Slug for notifications should set
 def ApplyForJobPreSave(sender, instance, *args, **kwargs):
     if instance.whoSentIt == 'e':
         Notif = Notification(profile=instance.company.profile,
@@ -301,3 +321,4 @@ def ApplyForJobPreSave(sender, instance, *args, **kwargs):
 pre_save.connect(ApplyForJobPreSave, ApplyForJob)
 pre_save.connect(EmployeePreSave, Employee)
 pre_save.connect(CompanyPreSave, Company)
+pre_save.connect(FollowRequestPreSave, FollowRequest)

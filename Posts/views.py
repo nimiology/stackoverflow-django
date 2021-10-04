@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from Posts.serializer import *
 from authentication.permission import BlockedByUserWithPost, CheckBlock, IsItOwner, IsItPostOwner, IsAdmin, \
-    IsRequestMethodDelete, IsRequestMethodPost, DeleteObjectByAdminOrOwner
+    IsRequestMethodDelete, IsRequestMethodPost, DeleteObjectByAdminOrOwner, IsPrivate, IsPrivateWithPost
 from users.utils import GetWallet
 from rest_framework.exceptions import ValidationError
 
@@ -17,10 +17,11 @@ class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAP
     serializer_class = PostSerializer
     queryset = Post.objects.all()
     lookup_field = 'slug'
-    permission_classes = [BlockedByUserWithPost, IsItOwner]
+    permission_classes = [BlockedByUserWithPost & IsPrivateWithPost, IsItOwner]
 
     def get(self, request, *args, **kwargs):
         """Get Post"""
+        self.get_queryset()
         return self.retrieve(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -62,8 +63,15 @@ class UserPostsAPI(ListAPIView):
         owner = Wallet.objects.get(id=authID)
         profile = GetWallet(self.request)
         if not (profile in owner.block.all()):
-            qs = owner.post.all()
-            return qs
+            if owner.private:
+                if owner in profile.following.all():
+                    qs = owner.post.all()
+                    return qs
+                else:
+                    raise ValidationError('This page is private')
+            else:
+                qs = owner.post.all()
+                return qs
         else:
             raise ValidationError("You've been blocked")
 
@@ -100,7 +108,7 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
                  DestroyModelMixin, GenericAPIView):
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
-    permission_classes = [CheckBlock, IsItOwner | IsItPostOwner]
+    permission_classes = [CheckBlock]
 
     def get(self, request, *args, **kwargs):
         """Get Comment"""
@@ -108,11 +116,12 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
 
     def post(self, request, *args, **kwargs):
         """Create Comment"""
+        self.permission_classes = [IsPrivate & CheckBlock]
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         """Delete Comment"""
-        self.permission_classes = [IsItPostOwner | DeleteObjectByAdminOrOwner]
+        self.permission_classes = [IsItPostOwner | DeleteObjectByAdminOrOwner | IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -152,7 +161,7 @@ class CommentLike(APIView):
 class PostCommentsAPI(ListAPIView):
     serializer_class = CommentSerializer
     pagination_class = StandardResultsSetPagination
-    permission_classes = [CheckBlock]
+    permission_classes = [CheckBlock & IsPrivate]
 
     def get_queryset(self):
         """Get Post's Comments"""

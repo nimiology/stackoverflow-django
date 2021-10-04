@@ -1,3 +1,4 @@
+import django_filters
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -57,6 +58,8 @@ class QuestionAPI(GenericAPIView, CreateModelMixin,
 class AllUserQuestionsAPI(ListAPIView):
     serializer_class = QuestionSerializer
     pagination_class = StandardResultsSetPagination
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['title', 'text']
 
     def get_queryset(self):
         authID = self.kwargs['slug']

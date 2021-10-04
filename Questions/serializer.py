@@ -2,13 +2,13 @@ from rest_framework import serializers
 from rest_framework.fields import ReadOnlyField
 
 from Questions.models import *
-from users.serializer import ProfileSerializer, TechSerializer, CategorySerializer
+from users.serializer import WalletSerializer, TechSerializer, CategorySerializer
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(read_only=True, required=False)
-    upVote = ProfileSerializer(many=True, read_only=True)
-    downVote = ProfileSerializer(many=True, read_only=True)
+    profile = WalletSerializer(read_only=True, required=False)
+    upVote = WalletSerializer(many=True, read_only=True)
+    downVote = WalletSerializer(many=True, read_only=True)
 
     class Meta:
         model = Question
@@ -21,10 +21,10 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class AnswerSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(read_only=True, required=False)
+    profile = WalletSerializer(read_only=True, required=False)
     question = QuestionSerializer(read_only=True, required=False)
-    upVote = ProfileSerializer(many=True, read_only=True)
-    downVote = ProfileSerializer(many=True, read_only=True)
+    upVote = WalletSerializer(many=True, read_only=True)
+    downVote = WalletSerializer(many=True, read_only=True)
 
     class Meta:
         model = Answer
