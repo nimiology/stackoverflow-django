@@ -6,10 +6,10 @@ from rest_framework.permissions import SAFE_METHODS
 from Posts.models import Post
 from users import models
 from authentication.utils import (
-    request_wallet,
-    check_wallet_id,
-    check_token_valid,
-    get_token_and_walletid,
+    get_token,
+    get_wallet,
+    verify_token,
+    verify_token_for_admin,
 )
 from users.utils import GetWallet, VerifyToken
 
@@ -204,3 +204,19 @@ class IsRequestMethodDelete(permissions.BasePermission):
 class IsRequestMethodPost(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.method == 'POST'
+
+
+class OwnerOrReadOnly(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        else:
+            token = get_token(request)
+            if verify_token(token):
+                wallet = get_wallet(token)
+                print(obj.profile)
+                print(wallet)
+                return obj.profile == wallet
+            else:
+                return False

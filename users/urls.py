@@ -38,4 +38,10 @@ urlpatterns = [
     path('reports', ReportsAPI.as_view()),
     path('report/<int:pk>', ReportAPI.as_view()),
 
+    path('company/', CompanyAll.as_view()),
+    path('company/<int:pk>/', CompanyRU.as_view()),
+    path('employee/', EmployeeAll.as_view()),
+    path('employee/<int:pk>/', EmployeeRU.as_view()),
+
+
 ]

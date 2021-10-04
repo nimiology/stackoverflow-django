@@ -8,7 +8,7 @@ from rest_framework.mixins import (CreateModelMixin,
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from authentication.permission import IsAdmin
+from authentication.permission import IsAdmin, OwnerOrReadOnly
 from users.serializer import *
 from users.utils import GetWallet, FindWallet
 
@@ -104,7 +104,8 @@ class FollowAPI(APIView):
                 notif.save()
                 return Response(data=WalletSerializer(following).data, status=status.HTTP_200_OK)
             else:
-                followRequest = FollowRequest(sender=profile, receiver=following)
+                followRequest = FollowRequest(
+                    sender=profile, receiver=following)
                 followRequest.save()
                 return Response(data=FollowRequestSerializer(followRequest).data, status=status.HTTP_200_OK)
         else:
@@ -187,7 +188,8 @@ class GetAllCategoryAPI(ListAPIView):
     serializer_class = CategorySerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['title', 'industry__title', 'upperCategory__title', 'status']
+    filterset_fields = ['title', 'industry__title',
+                        'upperCategory__title', 'status']
     queryset = Category.objects.all()
 
 
@@ -414,3 +416,44 @@ class ReportsAPI(ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['type', 'slug']
     queryset = Report.objects.all()
+
+
+class CompanyAll(ListAPIView):
+    serializer_class = CompanySerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['foundedIn', 'category', 'industries']
+    queryset = Company.objects.all()
+
+
+class CompanyRU(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
+    serializer_class = CompanySerializer
+    permission_classes = [OwnerOrReadOnly]
+    queryset = Company.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+
+class EmployeeAll(ListAPIView):
+    serializer_class = EmployeeSerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['gender', 'category', 'industries',
+                        'relationshipStatus', 'jobSearchStatus']
+    queryset = Employee.objects.all()
+
+
+class EmployeeRU(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
+    serializer_class = EmployeeSerializer
+    permission_classes = [OwnerOrReadOnly]
+    queryset = Employee.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)

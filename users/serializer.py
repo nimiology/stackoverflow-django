@@ -77,11 +77,15 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         self.fields['profile'] = ReadOnlyField(source='profile.id')
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
-        self.fields['techWantsToWorkWith'] = TechSerializer(many=True, read_only=True)
-        self.fields['techWantsToNotWorkWith'] = TechSerializer(many=True, read_only=True)
+        self.fields['techWantsToWorkWith'] = TechSerializer(
+            many=True, read_only=True)
+        self.fields['techWantsToNotWorkWith'] = TechSerializer(
+            many=True, read_only=True)
         self.fields['role'] = JobSerializer(many=True, read_only=True)
-        self.fields['industries'] = IndustriesSerializer(many=True, read_only=True)
-        self.fields['industriesToExclude'] = IndustriesSerializer(many=True, read_only=True)
+        self.fields['industries'] = IndustriesSerializer(
+            many=True, read_only=True)
+        self.fields['industriesToExclude'] = IndustriesSerializer(
+            many=True, read_only=True)
         return super(EmployeeProfileSerializer, self).to_representation(instance)
 
 
@@ -92,7 +96,8 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         self.fields['industry'] = IndustriesSerializer(read_only=True)
-        self.fields['upperCategory'] = ReadOnlyField(source='upperCategory.title')
+        self.fields['upperCategory'] = ReadOnlyField(
+            source='upperCategory.title')
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
         return super(CategorySerializer, self).to_representation(instance)
 
@@ -106,7 +111,8 @@ class VerifyCategorySerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         self.fields['industry'] = IndustriesSerializer(read_only=True)
-        self.fields['upperCategory'] = ReadOnlyField(source='upperCategory.title')
+        self.fields['upperCategory'] = ReadOnlyField(
+            source='upperCategory.title')
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
         return super(VerifyCategorySerializer, self).to_representation(instance)
 
@@ -119,7 +125,8 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         self.fields['profile'] = ReadOnlyField(source='profile.id')
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
-        self.fields['industries'] = IndustriesSerializer(read_only=True, many=True)
+        self.fields['industries'] = IndustriesSerializer(
+            read_only=True, many=True)
         return super(CompanyProfileSerializer, self).to_representation(instance)
 
 
@@ -209,3 +216,23 @@ class FollowRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FollowRequest
         fields = '__all__'
+
+
+class CompanySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Company
+        fields = ['profilePic', 'companyName', 'about', 'workEmail', 'phoneNumber', 'website',
+                  'foundedIn', 'category', 'industries', 'employeeCount', 'needEmployee', 'status']
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Employee
+        fields = ['name', 'profilePic', 'category', 'about',
+                  'address', 'phoneNumber',
+                  'birthday', 'gender', 'relationshipStatus', 'jobSearchStatus',
+                  'minimumAnnualSalary', 'techWantsToWorkWith',
+                  'techWantsToNotWorkWith', 'role', 'industries', 'industriesToExclude',
+                  'jobType', 'hire']
