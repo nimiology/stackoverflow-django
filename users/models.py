@@ -77,7 +77,7 @@ class Job(models.Model):
 
 
 class Company(models.Model):
-    relatedName = 'companyProfile'
+    relatedName = 'company'
 
     STATUS_CHOICES = [
         ('a', 'accepted'),
@@ -130,7 +130,7 @@ class JobOffer(models.Model):
 
 
 class Employee(models.Model):
-    relatedName = 'employeeProfile'
+    relatedName = 'employee'
 
     JOB_SEARCH_STATUS_CHOICES = (
         ('A', 'Actively looking right now'),
