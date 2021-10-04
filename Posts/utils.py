@@ -2,7 +2,7 @@ import os
 import random
 import string
 
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 
 
@@ -67,13 +67,5 @@ def upload_companyDocument(instance, filename):
     letters = list(letters_str)
     randomSTR = "".join(random.choice(letters) for _ in range(50))
     final_name = f"{randomSTR}{ext}"
-    return f"profiles/{instance.company.profile.authID}/{final_name}"
+    return f"profiles/{instance.company.profile.id}/{final_name}"
 
-
-def upload_file(instance, filename):
-    name, ext = get_filename_ext(filename)
-    letters_str = string.ascii_letters + string.digits
-    letters = list(letters_str)
-    randomName = "".join(random.choice(letters) for _ in range(100))
-    final_name = f"{randomName}{ext}"
-    return f"ChatRoom/{instance.chatRoom.pk}/{final_name}"

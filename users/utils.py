@@ -25,15 +25,22 @@ def VerifyToken(token):
         raise ValidationError('Token is not Valid')
 
 
-def GetWallet(request):
+def GetToken(request):
     if 'Authorization' in request.headers:
-        token = request.headers['Authorization']
-        wallet_id = VerifyToken(token)['wallet_id']
-        profile = FindWallet(wallet_id)
-        if not profile.ban:
-            return profile
-        else:
-            raise ValidationError('This profile has been banned')
+        return request.headers['Authorization']
     else:
         raise ValidationError('There is no Token!')
 
+
+def CheckBan(profile):
+    if not profile.ban:
+        return profile
+    else:
+        raise ValidationError('This profile has been banned')
+
+
+def GetWallet(request):
+    token = GetToken(request)
+    wallet_id = VerifyToken(token)['wallet_id']
+    profile = FindWallet(wallet_id)
+    return CheckBan(profile)

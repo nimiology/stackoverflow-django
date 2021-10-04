@@ -21,7 +21,6 @@ class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAP
 
     def get(self, request, *args, **kwargs):
         """Get Post"""
-        self.get_queryset()
         return self.retrieve(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):

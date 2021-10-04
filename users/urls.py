@@ -21,6 +21,15 @@ urlpatterns = [
     path('tech/<int:pk>', TechAPI.as_view()),
     path('techs', GetAllTechAPI.as_view()),
 
+    path('job', JobAPI.as_view()),
+    path('job/<int:pk>', JobAPI.as_view()),
+    path('jobs', GetAllJobAPI.as_view()),
+
+    path('companydocument', CompanyDocumentAPI.as_view()),
+    path('companydocument/<int:pk>', CompanyDocumentAPI.as_view()),
+    path('company/<slug>/companydocument', CompanyDocuments.as_view()),
+    path('companydocuments', CompanyDocumentAPI.as_view()),
+
     path('reportreason', ReportReasonAPI.as_view()),
     path('reportreason/<int:pk>', ReportReasonAPI.as_view()),
     path('reportreasons', AllReportReasonsAPI.as_view()),

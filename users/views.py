@@ -213,6 +213,7 @@ class TechAPI(GenericAPIView, CreateModelMixin,
 
     def delete(self, request, *args, **kwargs):
         """Delete Tech By Admin"""
+        self.permission_classes = [IsAdmin]
         self.check_permissions(self.request)
         return self.destroy(request, *args, **kwargs)
 
@@ -227,6 +228,121 @@ class GetAllTechAPI(ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['title', 'industry__title']
     queryset = Tech.objects.all()
+
+
+class JobAPI(GenericAPIView, CreateModelMixin,
+             RetrieveModelMixin, UpdateModelMixin,
+             DestroyModelMixin):
+    serializer_class = JobSerializer
+    queryset = Job.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        """Get Tech By Admin"""
+        return self.retrieve(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """Create Tech By Admin"""
+        return self.create(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        """Edit Tech By Admin"""
+        self.permission_classes = [IsAdmin]
+        self.check_permissions(self.request)
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        """Delete Tech By Admin"""
+        self.permission_classes = [IsAdmin]
+        self.check_permissions(self.request)
+        return self.destroy(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        GetWallet(self.request)
+        return serializer.save()
+
+
+class GetAllJobAPI(ListAPIView):
+    serializer_class = JobSerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['title', 'industry__title']
+    queryset = Job.objects.all()
+
+
+class CompanyDocumentAPI(GenericAPIView, CreateModelMixin,
+                         RetrieveModelMixin, UpdateModelMixin,
+                         DestroyModelMixin):
+    serializer_class = CompanyDocumentSerializer
+    queryset = CompanyDocument.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        """Get Company Document"""
+        return self.retrieve(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """Create Company Document"""
+        return self.create(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        """Edit Company Document"""
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        """Delete Company Document"""
+        return self.destroy(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        wallet = GetWallet(self.request)
+        try:
+            company = wallet.company
+            company.status = 'w'
+            company.save()
+            return serializer.save(company=company)
+        except Company.DoesNotExist:
+            raise ValidationError('There is no Company on this wallet')
+
+    def perform_update(self, serializer):
+        wallet = GetWallet(self.request)
+        try:
+            company = wallet.company
+            instance = get_object_or_404(CompanyDocument, pk=self.kwargs['pk'])
+            """Is he him?"""
+            if company == instance.company:
+                company = wallet.company
+                company.status = 'w'
+                company.save()
+                return instance.delete()
+            else:
+                raise ValidationError('access denied!')
+        except Company.DoesNotExist:
+            raise ValidationError('There is no Company on this wallet')
+
+    def perform_destroy(self, instance):
+        wallet = GetWallet(self.request)
+        try:
+            company = wallet.company
+            """Is he him?"""
+            if company == instance.company:
+                company = wallet.company
+                company.status = 'w'
+                company.save()
+                return instance.delete()
+            else:
+                raise ValidationError('access denied!')
+        except Company.DoesNotExist:
+            raise ValidationError('There is no Company on this wallet')
+
+
+class CompanyDocuments(ListAPIView):
+    serializer_class = CompanyDocumentSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        """Get Company's Document"""
+        id = self.kwargs['slug']
+        company = get_object_or_404(Company, profile__id=id)
+        companyDocuments = company.companyDocument.all()
+        return companyDocuments
 
 
 class ReportReasonAPI(GenericAPIView, CreateModelMixin,

@@ -70,14 +70,14 @@ class Tech(models.Model):
 
 class Job(models.Model):
     title = models.CharField(max_length=1024, unique=True)
-    industry = models.ForeignKey(Industries, blank=True, on_delete=models.CASCADE, related_name='role')
+    industry = models.ForeignKey(Industries, blank=True, null=True, on_delete=models.CASCADE, related_name='job')
 
     def __str__(self):
         return self.title
 
 
 class Company(models.Model):
-    relatedName = 'companyProfile'
+    relatedName = 'company'
 
     STATUS_CHOICES = [
         ('a', 'accepted'),
@@ -130,7 +130,7 @@ class JobOffer(models.Model):
 
 
 class Employee(models.Model):
-    relatedName = 'employeeProfile'
+    relatedName = 'employee'
 
     JOB_SEARCH_STATUS_CHOICES = (
         ('A', 'Actively looking right now'),
