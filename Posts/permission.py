@@ -30,7 +30,7 @@ class IsPrivateWithPost(permissions.BasePermission):
                 raise Http404
             requestOwner = GetWallet(request)
             if obj.profile.private:
-                if GetWallet(request) != requestOwner:
+                if GetWallet(request) != obj.profile:
                     if obj.profile in requestOwner.following.all():
                         return True
                     else:
