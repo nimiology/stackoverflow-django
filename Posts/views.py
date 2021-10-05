@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Posts.serializer import *
-from authentication.permission import BlockedByUserWithPost, CheckBlock, IsItOwner, IsItPostOwner, IsAdmin, \
+from Posts.permission import BlockedByUserWithPost, CheckBlock, IsItOwner, IsItPostOwner, IsAdmin, \
     IsRequestMethodDelete, IsRequestMethodPost, DeleteObjectByAdminOrOwner, IsPrivate, IsPrivateWithPost
 from users.utils import GetWallet
 from rest_framework.exceptions import ValidationError

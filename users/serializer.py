@@ -38,37 +38,6 @@ class VerifyIndustriesSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class WorkExperienceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WorkExperience
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        self.fields['profile'] = WalletSerializer(read_only=True)
-        self.fields['tech'] = TechSerializer(many=True, read_only=True)
-        return super(WorkExperienceSerializer, self).to_representation(instance)
-
-
-class EducationalBackgroundSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EducationalBackground
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        self.fields['profile'] = WalletSerializer(read_only=True)
-        return super(EducationalBackgroundSerializer, self).to_representation(instance)
-
-
-class AchievementSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Achievement
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        self.fields['profile'] = WalletSerializer(read_only=True)
-        return super(AchievementSerializer, self).to_representation(instance)
-
-
 class EmployeeProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
@@ -87,6 +56,14 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
         self.fields['industriesToExclude'] = IndustriesSerializer(
             many=True, read_only=True)
         return super(EmployeeProfileSerializer, self).to_representation(instance)
+
+
+class EducationalBackgroundSerializer(serializers.ModelSerializer):
+    profile = EmployeeProfileSerializer(read_only=True)
+
+    class Meta:
+        model = EducationalBackground
+        fields = '__all__'
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -131,12 +108,13 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
 
 
 class JobOfferSerializer(serializers.ModelSerializer):
+    company = CompanyProfileSerializer(required=False)
+
     class Meta:
         model = JobOffer
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['company'] = CompanyProfileSerializer(read_only=True)
         self.fields['tech'] = TechSerializer(read_only=True, many=True)
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
         return super(JobOfferSerializer, self).to_representation(instance)
@@ -148,6 +126,26 @@ class WalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
+        fields = '__all__'
+
+
+class WorkExperienceSerializer(serializers.ModelSerializer):
+    profile = WalletSerializer(required=False)
+
+    class Meta:
+        model = WorkExperience
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        self.fields['tech'] = TechSerializer(many=True, read_only=True)
+        return super(WorkExperienceSerializer, self).to_representation(instance)
+
+
+class AchievementSerializer(serializers.ModelSerializer):
+    profile = WalletSerializer(required=False)
+
+    class Meta:
+        model = Achievement
         fields = '__all__'
 
 
@@ -184,6 +182,12 @@ class ApplyForJobSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplyForJob
         fields = '__all__'
+        extra_kwargs = {
+            'sender': {'required': False},
+            'company': {'required': False},
+            'employee': {'required': False},
+
+        }
 
     def to_representation(self, instance):
         self.fields['employee'] = EmployeeProfileSerializer(read_only=True)

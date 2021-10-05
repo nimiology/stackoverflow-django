@@ -2,7 +2,7 @@ import jwt
 from rest_framework.exceptions import ValidationError
 from decouple import config
 
-from users.models import Wallet
+from users.models import Wallet, Company
 
 
 def FindWallet(id):
@@ -13,26 +13,31 @@ def FindWallet(id):
         raise ValidationError('Profile Not Found!')
 
 
+def CheckTheServiceID(token):
+    if token['service'] == config('SERVICE_ID'):
+        return True
+    else:
+        raise ValidationError('This token is not for this service')
+
+
 def VerifyToken(token):
     try:
-        tokenDecoded = jwt.decode(token, config('SECRET'), algorithms=["HS256"])
-        print(tokenDecoded)
-        if tokenDecoded['service'] == config('SERVICE_ID'):
-            return tokenDecoded
-        else:
-            raise ValidationError('This token is not for this service')
-    except:
+        decodedToken = jwt.decode(token, config('AUTH_SECRET_KEY'), algorithms=["HS256"])
+        print(decodedToken)
+        return decodedToken
+    except Exception as e:
+        print(e)
         raise ValidationError('Token is not Valid')
 
 
-def GetToken(request):
+def GetTokenFromHeader(request):
     if 'Authorization' in request.headers:
         return request.headers['Authorization']
     else:
         raise ValidationError('There is no Token!')
 
 
-def CheckBan(profile):
+def BanCheck(profile):
     if not profile.ban:
         return profile
     else:
@@ -40,7 +45,16 @@ def CheckBan(profile):
 
 
 def GetWallet(request):
-    token = GetToken(request)
-    wallet_id = VerifyToken(token)['wallet_id']
-    profile = FindWallet(wallet_id)
-    return CheckBan(profile)
+    token = GetTokenFromHeader(request)
+    DecodedToken = VerifyToken(token)
+    CheckTheServiceID(DecodedToken)
+    profile = FindWallet(DecodedToken['wallet_id'])
+    return BanCheck(profile)
+
+
+def GetCompany(profile):
+    try:
+        company = profile.company
+        return company
+    except Company.DoesNotExist:
+        raise ValidationError('There is no company on this profile')

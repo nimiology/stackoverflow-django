@@ -1,4 +1,5 @@
 import django_filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,7 +12,7 @@ from rest_framework.mixins import (CreateModelMixin,
 from Posts.utils import StandardResultsSetPagination
 from Questions.models import Question, Answer
 from Questions.serializer import QuestionSerializer, AnswerSerializer
-from authentication.permission import IsItOwner, IsAdmin, DeleteObjectByAdminOrOwner
+from Posts.permission import IsItOwner, IsAdmin, DeleteObjectByAdminOrOwner
 from users.utils import GetWallet
 
 
@@ -179,3 +180,12 @@ class AnswerDownVote(APIView):
             answer.downVote.remove(profile)
         data = AnswerSerializer(answer).data
         return Response(data, status=status.HTTP_200_OK)
+
+
+class SearchQuestions(ListAPIView):
+    serializer_class = QuestionSerializer
+    pagination_class = StandardResultsSetPagination
+    queryset = Question.objects.all().order_by('-date')
+    filter_backends = [DjangoFilterBackend]
+    """Search Fields"""
+    filterset_fields = ['title', 'text', 'category', 'tech']

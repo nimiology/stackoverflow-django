@@ -7,6 +7,7 @@ urlpatterns = [
     path('question/<slug>/upvote', QuestionUpVote.as_view()),
     path('question/<slug>/downvote', QuestionDownVote.as_view()),
     path('user/<slug>/question', AllUserQuestionsAPI.as_view()),
+    path('questions', SearchQuestions.as_view()),
 
     path('question/<slug>/answer', AnswerAPI.as_view()),
     path('question/<slug>/answers', QuestionAnswers.as_view()),

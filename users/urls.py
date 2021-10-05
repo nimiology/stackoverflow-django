@@ -28,7 +28,35 @@ urlpatterns = [
     path('companydocument', CompanyDocumentAPI.as_view()),
     path('companydocument/<int:pk>', CompanyDocumentAPI.as_view()),
     path('company/<slug>/companydocument', CompanyDocuments.as_view()),
-    path('companydocuments', CompanyDocumentAPI.as_view()),
+    path('company/<slug>/accept', VerifyCompany.as_view()),
+    path('company/<slug>/reject', VerifyCompany.as_view()),
+
+    path('educationalbackground', EducationalBackgroundAPI.as_view()),
+    path('educationalbackground/<int:pk>', EducationalBackgroundAPI.as_view()),
+    path('user/<slug>/educationalbackground', ProfileEducationalBackground.as_view()),
+
+    path('workexperience', WorkExperienceAPI.as_view()),
+    path('workexperience/<int:pk>', WorkExperienceAPI.as_view()),
+    path('user/<slug>/workexperience', ProfileWorkExperience.as_view()),
+
+    path('achievement', AchievementAPI.as_view()),
+    path('achievement/<int:pk>', AchievementAPI.as_view()),
+    path('user/<slug>/achievement', ProfileAchievement.as_view()),
+
+    path('notification', UserNotification.as_view()),
+    path('notification/custom', CustomNotification.as_view()),
+    path('notification/<id>/markasread', NotificationMarkAsRead.as_view()),
+
+    path('applyforjob', ApplyForJobAPI.as_view()),
+    path('applyforjob/<int:pk>', ApplyForJobAPI.as_view()),
+    path('applyforjob/<int:pk>/accept', VerifyApplyForJobAPI.as_view()),
+    path('applyforjob/<int:pk>/reject', VerifyApplyForJobAPI.as_view()),
+    path('user/<slug>/applyforjob', AllAppliesForJob.as_view()),
+
+    path('joboffer', JobOfferAPI.as_view()),
+    path('joboffer/<int:pk>', JobOfferAPI.as_view()),
+    path('company/<slug>/joboffers', GetAllProfileJobOffer.as_view()),
+    path('joboffers', SearchJobOffers.as_view()),
 
     path('reportreason', ReportReasonAPI.as_view()),
     path('reportreason/<int:pk>', ReportReasonAPI.as_view()),
@@ -37,6 +65,8 @@ urlpatterns = [
     path('report', ReportAPI.as_view()),
     path('reports', ReportsAPI.as_view()),
     path('report/<int:pk>', ReportAPI.as_view()),
+    
+    path('company/search', SearchCompany.as_view()),
 
     path('company/', CompanyAll.as_view()),
     path('company/<int:pk>/', CompanyRU.as_view()),
