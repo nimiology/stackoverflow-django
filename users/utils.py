@@ -22,11 +22,10 @@ def CheckTheServiceID(token):
 
 def VerifyToken(token):
     try:
-        decodedToken = jwt.decode(token, config('AUTH_SECRET_KEY'), algorithms=["HS256"])
-        print(decodedToken)
+        decodedToken = jwt.decode(token, config(
+            'AUTH_SECRET_KEY'), algorithms=["HS256"])
         return decodedToken
     except Exception as e:
-        print(e)
         raise ValidationError('Token is not Valid')
 
 

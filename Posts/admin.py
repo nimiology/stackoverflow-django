@@ -1,5 +1,9 @@
 from django.contrib import admin
-from .models import *
+from Posts.models import (
+    Post,
+    Comment,
+    Hashtag,
+)
 
 
 class PostAdmin(admin.ModelAdmin):

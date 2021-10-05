@@ -1,16 +1,33 @@
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, ListAPIView, get_object_or_404
-from rest_framework.mixins import (CreateModelMixin,
-                                   RetrieveModelMixin,
-                                   DestroyModelMixin)
+from rest_framework.generics import (
+    GenericAPIView,
+    ListAPIView,
+    get_object_or_404,
+)
+from rest_framework.mixins import (
+    CreateModelMixin,
+    RetrieveModelMixin,
+    DestroyModelMixin,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from Posts.serializer import *
-from Posts.permission import BlockedByUserWithPost, CheckBlock, IsItOwner, IsItPostOwner, IsAdmin, \
-    IsRequestMethodDelete, IsRequestMethodPost, DeleteObjectByAdminOrOwner, IsPrivate, IsPrivateWithPost
+from Posts.permission import (
+    BlockedByUserWithPost,
+    CheckBlock,
+    IsItOwner,
+    IsItPostOwner,
+    IsAdmin,
+    IsRequestMethodDelete,
+    IsRequestMethodPost,
+    DeleteObjectByAdminOrOwner,
+    IsPrivate,
+    IsPrivateWithPost,
+)
 from users.utils import GetWallet
 from rest_framework.exceptions import ValidationError
+from Posts.utils import StandardResultsSetPagination
+from users.models import Wallet
 
 
 class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
@@ -37,14 +54,17 @@ class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAP
         """Is there any pic or description?"""
         if 'pic' in self.request.data:
             if self.request.data['pic'] == '' and 'description' not in self.request.data:
-                raise ValidationError('You should give me one of pic or description or both')
+                raise ValidationError(
+                    'You should give me one of pic or description or both')
         if 'description' in self.request.data:
             if self.request.data['description'] == '':
-                raise ValidationError('You should give me one of pic or description or both')
+                raise ValidationError(
+                    'You should give me one of pic or description or both')
         if 'pic' in self.request.data or 'description' in self.request.data:
             return serializer.save(profile=wallet)
         else:
-            raise ValidationError('You should give me one of pic or description or both')
+            raise ValidationError(
+                'You should give me one of pic or description or both')
 
     def perform_destroy(self, instance):
         """Is he him?"""
@@ -82,7 +102,8 @@ class SeePosts(ListAPIView):
     def get_queryset(self):
         """Get Posts"""
         profile = GetWallet(self.request)
-        posts = Post.objects.order_by('-date').filter(profile__in=profile.following.all())
+        posts = Post.objects.order_by(
+            '-date').filter(profile__in=profile.following.all())
         return posts
 
 
@@ -120,7 +141,8 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         """Delete Comment"""
-        self.permission_classes = [IsItPostOwner | DeleteObjectByAdminOrOwner | IsItOwner]
+        self.permission_classes = [IsItPostOwner |
+                                   DeleteObjectByAdminOrOwner | IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -128,7 +150,8 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
         post = get_object_or_404(Post, slug=self.kwargs['slug'])
         self.check_object_permissions(self.request, post)
         if 'replyToComment' in self.request.data:
-            replyTOComment = get_object_or_404(Comment, id=self.request.data['replyToComment'])
+            replyTOComment = get_object_or_404(
+                Comment, id=self.request.data['replyToComment'])
             replyToCommentPost = replyTOComment.post.id
             if replyToCommentPost != post:
                 raise ValidationError("Upper comment didn't found")
@@ -174,7 +197,8 @@ class PostCommentsAPI(ListAPIView):
 class HashtagAPI(GenericAPIView, CreateModelMixin, DestroyModelMixin):
     serializer_class = HashtagSerializer
     queryset = Hashtag.objects.all()
-    permission_classes = [IsAdmin & IsRequestMethodDelete | IsRequestMethodPost]
+    permission_classes = [
+        IsAdmin & IsRequestMethodDelete | IsRequestMethodPost]
 
     def post(self, request, *args, **kwargs):
         """Create Hashtag"""
