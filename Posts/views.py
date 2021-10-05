@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.generics import (
     GenericAPIView,
@@ -207,6 +208,15 @@ class HashtagAPI(GenericAPIView, CreateModelMixin, DestroyModelMixin):
     def delete(self, request, *args, **kwargs):
         """Delete Hashtag By Admin"""
         return self.destroy(request, *args, **kwargs)
+
+
+class AllHashtagAPI(ListAPIView):
+    serializer_class = PostSerializer
+    pagination_class = StandardResultsSetPagination
+    queryset = Hashtag.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    """Search Fields"""
+    filterset_fields = ['title']
 
 
 class HashtagPostAPI(ListAPIView):

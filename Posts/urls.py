@@ -17,4 +17,5 @@ urlpatterns = [
     path('hashtag', HashtagAPI.as_view()),
     path('hashtag/<int:pk>', HashtagAPI.as_view()),
     path('hashtag/<int:pk>/posts', HashtagPostAPI.as_view()),
+    path('hashtag/all', AllHashtagAPI.as_view()),
 ]
