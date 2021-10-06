@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
-from Posts.models import *
+from Posts.models import (
+    Hashtag,
+    Post,
+    Comment,
+)
 from users.serializer import WalletSerializer
 
 

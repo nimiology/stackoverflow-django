@@ -78,12 +78,15 @@ class Company(models.Model):
     workEmail = models.EmailField(blank=True)
     phoneNumber = models.CharField(max_length=15, blank=True)
     website = models.CharField(max_length=500, blank=True)
-    foundedIn = models.DateField()
-    category = models.ManyToManyField(Category, blank=True, related_name=relatedName)
-    industries = models.ManyToManyField(Industries, blank=True, related_name=relatedName)
+    foundedIn = models.DateField(blank=True, null=True)
+    category = models.ManyToManyField(
+        Category, blank=True, related_name=relatedName)
+    industries = models.ManyToManyField(
+        Industries, blank=True, related_name=relatedName)
     employeeCount = models.CharField(max_length=1024, blank=True)
-    needEmployee = models.BooleanField()
-    status = models.CharField(choices=STATUS_CHOICES, default='w', max_length=1)
+    needEmployee = models.BooleanField(blank=True, null=True)
+    status = models.CharField(choices=STATUS_CHOICES,
+                              default='w', max_length=1)
 
     def __str__(self):
         return self.profile.pk
@@ -145,7 +148,7 @@ class Employee(models.Model):
     about = models.TextField(blank=True)
     address = models.CharField(max_length=1024, blank=True)
     phoneNumber = models.CharField(max_length=13)
-    birthday = models.DateField()
+    birthday = models.DateField(blank=True, null=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=1)
     relationshipStatus = models.CharField(choices=RELATIONSHIP_STATUS_CHOICES, max_length=1)
     jobSearchStatus = models.CharField(max_length=1, choices=JOB_SEARCH_STATUS_CHOICES)
@@ -157,8 +160,9 @@ class Employee(models.Model):
     industries = models.ManyToManyField(Industries, blank=True, related_name='employeeProfileIndustries')
     industriesToExclude = models.ManyToManyField(Industries, blank=True,
                                                  related_name='employeeProfileIndustriesToExclude')
-    jobType = models.CharField(max_length=1, choices=JOB_TYPE_CHOICES, blank=True)
-    hire = models.BooleanField()
+    jobType = models.CharField(
+        max_length=1, choices=JOB_TYPE_CHOICES, blank=True)
+    hire = models.BooleanField(blank=True, null=True)
 
     def __str__(self):
         return self.profile.pk

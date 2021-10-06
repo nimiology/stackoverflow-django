@@ -1,9 +1,15 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, ListAPIView, get_object_or_404
-from rest_framework.mixins import (CreateModelMixin,
-                                   RetrieveModelMixin,
-                                   DestroyModelMixin)
+from rest_framework.generics import (
+    GenericAPIView,
+    ListAPIView,
+    get_object_or_404,
+)
+from rest_framework.mixins import (
+    CreateModelMixin,
+    RetrieveModelMixin,
+    DestroyModelMixin,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,6 +18,8 @@ from Posts.permission import IsItOwner, IsItPostOwner, IsAdmin, \
     IsRequestMethodDelete, IsRequestMethodPost, DeleteObjectByAdminOrOwner
 from users.utils import GetWallet
 from rest_framework.exceptions import ValidationError
+from Posts.utils import StandardResultsSetPagination
+from users.models import Wallet
 
 
 class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAPIView):

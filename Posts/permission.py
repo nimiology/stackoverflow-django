@@ -1,7 +1,10 @@
 from Posts.models import Post
 from django.http import Http404
 from rest_framework.exceptions import ValidationError
-from users.utils import GetWallet, VerifyToken
+from users.utils import (
+    GetWallet,
+    VerifyToken,
+)
 from rest_framework import permissions
 
 
