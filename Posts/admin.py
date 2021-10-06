@@ -6,6 +6,7 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ("profile", "slug", 'date')
     ordering = ["profile", "id", 'date']
 
+
 class CommentsAdmin(admin.ModelAdmin):
     list_display = ("profile", "post", 'date')
     ordering = ["profile", 'post', "id", 'date']

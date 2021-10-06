@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.fields import ReadOnlyField
 
 from Questions.models import *
 from users.serializer import WalletSerializer, TechSerializer, CategorySerializer

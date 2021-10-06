@@ -9,26 +9,10 @@ from Posts.utils import *
 class Wallet(models.Model):
     id = models.CharField(max_length=40, primary_key=True)
     following = models.ManyToManyField('Wallet', blank=True, related_name='followers')
-    block = models.ManyToManyField('Wallet', blank=True, related_name='blockBy')
     ban = models.BooleanField(default=False)
-    private = models.BooleanField(default=False)
 
     def __str__(self):
         return self.id
-
-
-class FollowRequest(models.Model):
-    STATUS_CHOICES = [
-        ('a', 'accepted'),
-        ('w', "waiting"),
-        ('r', 'rejected'),
-    ]
-    sender = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='followRequestSent')
-    receiver = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='followRequests')
-    status = models.CharField(choices=STATUS_CHOICES, default='w', max_length=1)
-
-    def __str__(self):
-        return f'{self.sender} - {self.receiver}'
 
 
 class Industries(models.Model):
@@ -188,7 +172,6 @@ class WorkExperience(models.Model):
     company = models.CharField(max_length=1024)
     start = models.DateField()
     end = models.DateField(blank=True, null=True)
-    stillWorking = models.BooleanField()
     tech = models.ManyToManyField(Tech, related_name=relatedName, blank=True)
     description = models.TextField(blank=True)
 
@@ -205,7 +188,6 @@ class EducationalBackground(models.Model):
     educationalInstitute = models.CharField(max_length=1024)
     start = models.DateField()
     end = models.DateField(blank=True, null=True)
-    stillStudying = models.BooleanField()
     adjusted = models.DecimalField(max_digits=4, decimal_places=2)
     description = models.TextField(blank=True)
 
@@ -290,12 +272,6 @@ class Report(models.Model):
     date = models.DateTimeField(auto_now_add=True)
 
 
-def FollowRequestPreSave(sender, instance, *args, **kwargs):
-    notif = Notification(profile=instance.receiver,
-                         text="You have a new follow request")
-    notif.save()
-    if instance.status == 'a':
-        instance.sender.following.add(instance.receiver)
 
 
 def EmployeePreSave(sender, instance, *args, **kwargs):
@@ -325,4 +301,3 @@ def ApplyForJobPreSave(sender, instance, *args, **kwargs):
 pre_save.connect(ApplyForJobPreSave, ApplyForJob)
 pre_save.connect(EmployeePreSave, Employee)
 pre_save.connect(CompanyPreSave, Company)
-pre_save.connect(FollowRequestPreSave, FollowRequest)

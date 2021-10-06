@@ -213,14 +213,6 @@ class ReportSerializer(serializers.ModelSerializer):
         return super(ReportSerializer, self).to_representation(instance)
 
 
-class FollowRequestSerializer(serializers.ModelSerializer):
-    sender = WalletSerializer(read_only=True, required=False)
-    receiver = WalletSerializer(read_only=True, required=False)
-
-    class Meta:
-        model = FollowRequest
-        fields = '__all__'
-
 
 class CompanySerializer(serializers.ModelSerializer):
 

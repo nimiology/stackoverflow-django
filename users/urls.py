@@ -3,11 +3,9 @@ from django.urls import path
 
 urlpatterns = [
     path('wallet/<pk>', WalletAPI.as_view()),
-    path('block/<slug>', Block.as_view()),
     path('follow/<slug>', FollowAPI.as_view()),
-    path('followrequests', FollowRequests.as_view()),
-    path('followrequest/<id>/accept', AcceptFollowRequest.as_view()),
-    path('followrequest/<id>/reject', RejectFollowRequest.as_view()),
+    path('user/<slug>/following', FollowingAPI.as_view()),
+    path('user/<slug>/follower', FollowersAPI.as_view()),
 
     path('industry', IndustriesAPI.as_view()),
     path('industry/<int:pk>', IndustriesAPI.as_view()),

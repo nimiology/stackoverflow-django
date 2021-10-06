@@ -32,75 +32,6 @@ class WalletAPI(GenericAPIView, RetrieveModelMixin, DestroyModelMixin):
         return self.destroy(request, *args, **kwargs)
 
 
-class Block(APIView):
-    def post(self, request, *args, **kwargs):
-        """Block"""
-        profile1 = GetWallet(request)
-        authID = kwargs['slug']
-        profile2 = FindWallet(authID)
-        if profile2 != profile1:
-            if profile2 not in profile1.block.all():
-                profile1.block.add(profile2)
-            else:
-                profile1.block.remove(profile2)
-            return Response(data=WalletSerializer(profile1).data, status=status.HTTP_200_OK)
-        else:
-            raise ValidationError('You cant block yourself')
-
-
-class AcceptFollowRequest(APIView):
-    def post(self, request, *args, **kwargs):
-        """Confirm Follow Request"""
-        followRequest = get_object_or_404(FollowRequest, id=kwargs['id'])
-        wallet = GetWallet(request)
-        if followRequest.receiver == wallet:
-            if followRequest.status == 'w':
-                serializer = FollowRequestSerializer(followRequest)
-                followRequest.status = 'a'
-                followRequest.save()
-                data = serializer.data
-                statusResponse = status.HTTP_200_OK
-            else:
-                raise ValidationError('Previously reviewed!')
-        else:
-            raise ValidationError('access denied!')
-
-        return Response(data=data, status=statusResponse)
-
-
-class RejectFollowRequest(APIView):
-    def post(self, request, *args, **kwargs):
-        """Reject Follow Request"""
-        followRequest = get_object_or_404(FollowRequest, id=kwargs['id'])
-        wallet = GetWallet(request)
-        if followRequest.receiver == wallet:
-            if followRequest.status == 'w':
-                serializer = FollowRequestSerializer(followRequest)
-                followRequest.status = 'r'
-                followRequest.save()
-                data = serializer.data
-                statusResponse = status.HTTP_200_OK
-            else:
-                raise ValidationError('Previously reviewed!')
-        else:
-            raise ValidationError('access denied!')
-
-        return Response(data=data, status=statusResponse)
-
-
-class FollowRequests(ListAPIView):
-    serializer_class = FollowRequestSerializer
-    pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['status']
-
-    def get_queryset(self):
-        """Get All Follow Requests"""
-        wallet = GetWallet(self.request)
-        qs = wallet.followRequests.all()
-        return qs
-
-
 class FollowAPI(APIView):
     def post(self, request, *args, **kwargs):
         """Follow"""
@@ -108,18 +39,37 @@ class FollowAPI(APIView):
         authID = kwargs['slug']
         following = FindWallet(authID)
         if following != profile:
-            if not following.private:
-                profile.following.add(following)
-                notif = Notification(profile=following,
-                                     text=f'{profile.authID} followed you!', )
-                notif.save()
-                return Response(data=WalletSerializer(following).data, status=status.HTTP_200_OK)
-            else:
-                followRequest = FollowRequest(sender=profile, receiver=following)
-                followRequest.save()
-                return Response(data=FollowRequestSerializer(followRequest).data, status=status.HTTP_200_OK)
+            profile.following.add(following)
+            notif = Notification(profile=following,
+                                 text=f'{profile.id} followed you!', )
+            notif.save()
+            return Response(data=WalletSerializer(following).data, status=status.HTTP_200_OK)
         else:
             raise ValidationError('You cant follow yourself')
+
+
+class FollowingAPI(ListAPIView):
+    serializer_class = WalletSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        """Get User Following"""
+        authID = self.kwargs['slug']
+        profile = FindWallet(authID)
+        followings = profile.following.all()
+        return followings
+
+
+class FollowersAPI(ListAPIView):
+    serializer_class = WalletSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        """Get User Following"""
+        authID = self.kwargs['slug']
+        profile = FindWallet(authID)
+        followings = profile.followers.all()
+        return followings
 
 
 class IndustriesAPI(GenericAPIView, CreateModelMixin,
@@ -448,8 +398,8 @@ class ProfileEducationalBackground(ListAPIView):
     def get_queryset(self):
         """Get profile's EducationalBackground"""
         id = self.kwargs['slug']
-        company = get_object_or_404(Employee, profile__id=id)
-        education = company.educationalBackground.all()
+        employee = get_object_or_404(Employee, profile__id=id)
+        education = employee.educationalBackground.all()
         return education
 
 
@@ -824,6 +774,7 @@ class SearchCompany(ListAPIView):
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['companyName', 'about', 'foundedIn', 'employeeCount', 'industries', 'category', 'needEmployee']
+
 
 class CompanyAll(ListAPIView):
     serializer_class = CompanySerializer

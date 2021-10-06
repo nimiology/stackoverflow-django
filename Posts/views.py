@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Posts.serializer import *
-from Posts.permission import BlockedByUserWithPost, CheckBlock, IsItOwner, IsItPostOwner, IsAdmin, \
-    IsRequestMethodDelete, IsRequestMethodPost, DeleteObjectByAdminOrOwner, IsPrivate, IsPrivateWithPost
+from Posts.permission import IsItOwner, IsItPostOwner, IsAdmin, \
+    IsRequestMethodDelete, IsRequestMethodPost, DeleteObjectByAdminOrOwner
 from users.utils import GetWallet
 from rest_framework.exceptions import ValidationError
 
@@ -18,7 +18,6 @@ class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAP
     serializer_class = PostSerializer
     queryset = Post.objects.all()
     lookup_field = 'slug'
-    permission_classes = [BlockedByUserWithPost & IsPrivateWithPost, IsItOwner]
 
     def get(self, request, *args, **kwargs):
         """Get Post"""
@@ -61,19 +60,8 @@ class UserPostsAPI(ListAPIView):
         """Get all User's Post"""
         authID = self.kwargs['slug']
         owner = Wallet.objects.get(id=authID)
-        profile = GetWallet(self.request)
-        if not (profile in owner.block.all()):
-            if owner.private:
-                if owner in profile.following.all():
-                    qs = owner.post.all()
-                    return qs
-                else:
-                    raise ValidationError('This page is private')
-            else:
-                qs = owner.post.all()
-                return qs
-        else:
-            raise ValidationError("You've been blocked")
+        qs = owner.post.all()
+        return qs
 
 
 class SeePosts(ListAPIView):
@@ -93,22 +81,18 @@ class Like(APIView):
         slug = kwargs['slug']
         profile = GetWallet(request)
         post = get_object_or_404(Post, slug=slug)
-        if not (profile in post.profile.block.all()):
-            if not profile in post.like.all():
-                post.like.add(profile)
-            else:
-                post.like.remove(profile)
-            data = PostSerializer(post).data
-            return Response(data, status=status.HTTP_200_OK)
+        if not profile in post.like.all():
+            post.like.add(profile)
         else:
-            raise ValidationError("You've been blocked!")
+            post.like.remove(profile)
+        data = PostSerializer(post).data
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class CommentAPI(CreateModelMixin, RetrieveModelMixin,
                  DestroyModelMixin, GenericAPIView):
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
-    permission_classes = [CheckBlock]
 
     def get(self, request, *args, **kwargs):
         """Get Comment"""
@@ -116,7 +100,6 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
 
     def post(self, request, *args, **kwargs):
         """Create Comment"""
-        self.permission_classes = [IsPrivate & CheckBlock]
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
@@ -127,7 +110,6 @@ class CommentAPI(CreateModelMixin, RetrieveModelMixin,
     def perform_create(self, serializer):
         wallet = GetWallet(self.request)
         post = get_object_or_404(Post, slug=self.kwargs['slug'])
-        self.check_object_permissions(self.request, post)
         if 'replyToComment' in self.request.data:
             replyTOComment = get_object_or_404(Comment, id=self.request.data['replyToComment'])
             replyToCommentPost = replyTOComment.post.id
@@ -147,27 +129,22 @@ class CommentLike(APIView):
         id = kwargs['pk']
         profile = GetWallet(request)
         comment = get_object_or_404(Comment, id=id)
-        if not (profile in comment.profile.block.all()):
-            if not profile in comment.like.all():
-                comment.like.add(profile)
-            else:
-                comment.like.remove(profile)
-            data = CommentSerializer(comment).data
-            return Response(data, status=status.HTTP_200_OK)
+        if not profile in comment.like.all():
+            comment.like.add(profile)
         else:
-            raise ValidationError("You've been blocked!")
+            comment.like.remove(profile)
+        data = CommentSerializer(comment).data
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class PostCommentsAPI(ListAPIView):
     serializer_class = CommentSerializer
     pagination_class = StandardResultsSetPagination
-    permission_classes = [CheckBlock & IsPrivate]
 
     def get_queryset(self):
         """Get Post's Comments"""
         slug = self.kwargs['slug']
         post = get_object_or_404(Post, slug=slug)
-        self.check_object_permissions(self.request, post)
         qs = post.comment.all()
         return qs
 
@@ -187,7 +164,7 @@ class HashtagAPI(GenericAPIView, CreateModelMixin, DestroyModelMixin):
 
 
 class AllHashtagAPI(ListAPIView):
-    serializer_class = PostSerializer
+    serializer_class = HashtagSerializer
     pagination_class = StandardResultsSetPagination
     queryset = Hashtag.objects.all()
     filter_backends = [DjangoFilterBackend]
