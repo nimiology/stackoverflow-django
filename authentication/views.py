@@ -14,12 +14,13 @@ from rest_framework import exceptions
 import json
 from authentication.permission import AdminPermission
 from authentication.utils import (
-    HOST,
     BASE_AUTH,
-    send_request_to_server,
+    HOST,
+    create_obj_by_type,
     get_token,
-    get_url_with_service_and_role,
     get_url_admin_or_user,
+    get_url_with_service_and_role,
+    send_request_to_server,
 )
 from rest_framework.response import Response
 
@@ -29,12 +30,8 @@ class GetUser(APIView):
     permission_classes = [AdminPermission]
 
     def get(self, request, *args, **kwargs):
-
-        # * Get token
         token = get_token(request)
         url = HOST + "/admin/users/" + kwargs["id"]
-
-        # * Send request to the server and return response to client
         return send_request_to_server(url, "get", token=token)
 
 
@@ -44,13 +41,9 @@ class AllUser(APIView):
     serializer_class = FilterSerializer
 
     def post(self, request, *args, **kwargs):
-
-        # * Get token
         token = get_token(request)
         url = HOST + "/admin/users"
-
-        # * Send request to the server and return response to client
-        return send_request_to_server(url=url, type="post", token=token)
+        return send_request_to_server(url=url, request_type="post", token=token)
 
 
 # * Auth : Register User
@@ -87,15 +80,7 @@ class Register(APIView):
                 new_wallet.save()
 
                 # ? Create user object
-                if kwargs["type"] == "company":
-                    new_user = models.Company.objects.create(
-                        profile=new_wallet)
-                elif kwargs["type"] == "employee":
-                    new_user = models.Employee.objects.create(
-                        profile=new_wallet)
-                else:
-                    raise exceptions.ValidationError('type is not acceptable')
-
+                create_obj_by_type(kwargs["type"], new_wallet)
                 return Response(response.json(), status=response.status_code)
             else:
                 raise exceptions.ValidationError(
@@ -110,15 +95,9 @@ class Login(APIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
-
         if serializer.is_valid():
-
-            # * Create url
             url = get_url_with_service_and_role(kwargs["type"], "/login/")
-
-            # * Send request to the server and return response to client
-            return send_request_to_server(url=url, serializer=serializer, type="post")
-
+            return send_request_to_server(url=url, serializer=serializer, request_type="post")
         else:
             raise exceptions.ValidationError(detail="Invalid data", code=400)
 
@@ -127,15 +106,9 @@ class Login(APIView):
 class MyInfo(APIView):
 
     def post(self, request, *args, **kwargs):
-
-        # * Get token
         token = get_token(request)
-
-        # * Create url
         url = get_url_admin_or_user(kwargs["type"], "/me")
-
-        # * Send request to the server and return response to client
-        return send_request_to_server(url=url, type="post", token=token)
+        return send_request_to_server(url=url, request_type="post", token=token)
 
 
 # * Auth : Update User Info
@@ -144,18 +117,10 @@ class MyInfoUpdate(APIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
-
         if serializer.is_valid():
-
-            # * Get token
             token = get_token(request)
-
-            # * Create url
             url = get_url_admin_or_user(kwargs["type"], "/me/update")
-
-            # * Send request to the server and return response to client
-            return send_request_to_server(url=url, serializer=serializer, type="post", token=token)
-
+            return send_request_to_server(url=url, serializer=serializer, request_type="post", token=token)
         else:
             raise exceptions.ValidationError(detail="Invalid data", code=400)
 
@@ -164,15 +129,9 @@ class MyInfoUpdate(APIView):
 class Logout(APIView):
 
     def post(self, request, *args, **kwargs):
-
-        # * Get token
         token = get_token(request)
-
-        # * Create url ( admin or user )
         url = get_url_admin_or_user(kwargs["type"], "/logout")
-
-        # * Send request to the server and return response to client
-        return send_request_to_server(url=url, type="post", token=token)
+        return send_request_to_server(url=url, request_type="post", token=token)
 
 
 # * Auth : Delete User
@@ -181,17 +140,10 @@ class DeleteAccount(APIView):
 
     def delete(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
-
         if serializer.is_valid():
-
             url = HOST + "/delete-my-account"
-
-            # * Get token
             token = get_token(request)
-
-            # * Send request to the server and return response to client
-            return send_request_to_server(url=url, serializer=serializer, type="delete", token=token)
-
+            return send_request_to_server(url=url, serializer=serializer, request_type="delete", token=token)
         else:
             raise exceptions.ValidationError(detail="Invalid data", code=400)
 
@@ -202,13 +154,8 @@ class UpdateToken(APIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
-
         if serializer.is_valid():
-
             url = HOST + "/update-token"
-
-            # * Send request to the server and return response to client
-            return send_request_to_server(url=url, serializer=serializer, type="post")
-
+            return send_request_to_server(url=url, serializer=serializer, request_type="post")
         else:
             raise exceptions.ValidationError(detail="Invalid data", code=400)

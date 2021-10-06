@@ -5,7 +5,7 @@ from rest_framework import exceptions
 import json
 from decouple import config
 import jwt
-from users.models import Wallet
+from users.models import Company, Employee, Wallet
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -21,14 +21,10 @@ ROLE_ID_EMPLOYEE = config('ROLE_ID_EMPLOYEE')
 # todo : Get Wallet
 def get_wallet(token):
     try:
-        # * Decode Token
         decoded = jwt.decode(token.split(
             " ")[-1], options={"verify_signature": False})
-
         wallet_id = decoded['wallet_id']
-
         wallet_object = Wallet.objects.get(id=wallet_id)
-
     except ObjectDoesNotExist:
         raise exceptions.ValidationError(
             detail="ٌWallet object not exist", code=400)
@@ -46,7 +42,6 @@ def verify_token(token):
             token, AUTH_SECRET_KEY, algorithms=["HS256"])
     except:
         return False
-
     return True
 
 
@@ -57,7 +52,6 @@ def verify_token_for_admin(token):
             token, AUTH_SECRET_KEY, algorithms=["HS256"])
     except:
         return False
-
     if data['role'] == "admin":
         return True
     else:
@@ -65,15 +59,11 @@ def verify_token_for_admin(token):
 
 
 # todo : Sent request and return response to client | requests data can set in data or serializer
-def send_request_to_server(url, type, serializer=None, token=None, data_type=None, data={}):
+def send_request_to_server(url, request_type, serializer=None, token=None, data_type=None, data={}):
 
-    if type == "post":
-
-        # * for post method without serializer
+    if request_type == "post":
         if not serializer == None:
             data = dict(serializer.validated_data)
-
-        # * Set auth_basic for acceptable request & token ( can be None )
         headers = {
             'auth_basic': BASE_AUTH,
             'Authorization': token,
@@ -86,33 +76,24 @@ def send_request_to_server(url, type, serializer=None, token=None, data_type=Non
             response = requests.post(url, files=data, headers=headers)
         else:
             response = requests.post(url, data=data, headers=headers)
-
         return Response(response.json(), status=response.status_code)
 
-    elif type == "delete":
-
-        # * for post method without serializer
+    elif request_type == "delete":
         if not serializer == None:
             data = dict(serializer.validated_data)
-
-        # * Set auth_basic for acceptable request & token ( can be None )
         headers = {
             'auth_basic': BASE_AUTH,
             'Authorization': token,
         }
         response = requests.delete(url, json=data, headers=headers)
-
         return Response(response.json(), status=response.status_code)
 
-    elif type == "get":
-
-        # * Set auth_basic for acceptable request & token ( can be None )
+    elif request_type == "get":
         headers = {
             'auth_basic': BASE_AUTH,
             'Authorization': token,
         }
         response = requests.get(url, headers=headers)
-
         return Response(response.json(), status=response.status_code)
 
 
@@ -152,3 +133,14 @@ def get_url_admin_or_user(user_type, main_url):
         raise exceptions.ValidationError(detail="Invalid type", code=400)
 
     return url
+
+
+def create_obj_by_type(obj_type, new_wallet):
+    if obj_type == "company":
+        new_user = Company.objects.create(
+            profile=new_wallet)
+    elif obj_type == "employee":
+        new_user = Employee.objects.create(
+            profile=new_wallet)
+    else:
+        raise exceptions.ValidationError('type is not acceptable')
