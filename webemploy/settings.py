@@ -23,10 +23,10 @@ INSTALLED_APPS = [
     "rest_framework",
     'django_filters',
     # my apps :
-    "users",
-    "authentication",
-    "Posts",
-    "Questions"
+    "users.apps.UsersConfig",
+    "authentication.apps.AuthenticationConfig",
+    "Posts.apps.PostsConfig",
+    "Questions.apps.QuestionsConfig"
 
 ]
 
