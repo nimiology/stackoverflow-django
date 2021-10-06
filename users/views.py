@@ -815,3 +815,18 @@ class EmployeeRU(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
 
     def post(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
+
+
+class BanProfileAPI(APIView):
+    permission_classes = [IsAdmin]
+
+    def post(self, request, *args, **kwargs):
+        """Ban a profile by admin"""
+        wallet_id = kwargs['slug']
+        wallet = FindWallet(wallet_id)
+        wallet.ban = not wallet.ban
+        wallet.save()
+        serializer = WalletSerializer(wallet)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+

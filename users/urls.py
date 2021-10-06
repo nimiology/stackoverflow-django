@@ -66,6 +66,8 @@ urlpatterns = [
     
     path('company/search', SearchCompany.as_view()),
 
+    path('user/<slug>/ban', BanProfileAPI.as_view()),
+
     path('company/', CompanyAll.as_view()),
     path('company/<int:pk>/', CompanyRU.as_view()),
     path('employee/', EmployeeAll.as_view()),
