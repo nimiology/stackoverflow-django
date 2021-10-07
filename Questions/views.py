@@ -1,5 +1,4 @@
 import django_filters
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -186,6 +185,5 @@ class SearchQuestions(ListAPIView):
     serializer_class = QuestionSerializer
     pagination_class = StandardResultsSetPagination
     queryset = Question.objects.all().order_by('-date')
-    filter_backends = [DjangoFilterBackend]
     """Search Fields"""
     filterset_fields = ['title', 'text', 'category', 'tech']

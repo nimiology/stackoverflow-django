@@ -1,6 +1,5 @@
 from django.db.models import Q
 from django.http import Http404
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.generics import GenericAPIView, ListAPIView, get_object_or_404
 from rest_framework.mixins import (CreateModelMixin,
@@ -108,7 +107,6 @@ class GetAllIndustriesAPI(ListAPIView):
     """Get All Industries"""
     serializer_class = IndustriesSerializer
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
     # search fields
     filterset_fields = ['title', 'status']
     queryset = Industries.objects.all()
@@ -150,7 +148,6 @@ class GetAllCategoryAPI(ListAPIView):
     """Get All Categories"""
     serializer_class = CategorySerializer
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
     # search fields
     filterset_fields = ['title', 'industry__title', 'upperCategory__title', 'status']
     queryset = Category.objects.all()
@@ -191,7 +188,6 @@ class GetAllTechAPI(ListAPIView):
     """Get All Techs"""
     serializer_class = TechSerializer
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
     # Search Fields
     filterset_fields = ['title', 'industry__title']
     queryset = Tech.objects.all()
@@ -232,7 +228,6 @@ class GetAllJobAPI(ListAPIView):
     """Get All Jobs"""
     serializer_class = JobSerializer
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
     # Search Fields
     filterset_fields = ['title', 'industry__title']
     queryset = Job.objects.all()
@@ -753,7 +748,6 @@ class ReportsAPI(ListAPIView):
     """Get All Reports"""
     serializer_class = ReportSerializer
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
     # Search Fields
     filterset_fields = ['type', 'slug']
     queryset = Report.objects.all()
@@ -763,7 +757,6 @@ class SearchJobOffers(ListAPIView):
     serializer_class = JobOfferSerializer
     queryset = JobOffer.objects.all().order_by('-id')
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
     """Search Fields"""
     filterset_fields = ['title', 'job', 'tech', 'category', 'count', 'jobType', 'text']
 
@@ -772,14 +765,12 @@ class SearchCompany(ListAPIView):
     serializer_class = CompanyProfileSerializer
     queryset = Company.objects.all().order_by('-id')
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
     filterset_fields = ['companyName', 'about', 'foundedIn', 'employeeCount', 'industries', 'category', 'needEmployee']
 
 
 class CompanyAll(ListAPIView):
     serializer_class = CompanySerializer
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
     filterset_fields = ['foundedIn', 'category', 'industries']
     queryset = Company.objects.all()
 
@@ -799,7 +790,6 @@ class CompanyRU(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
 class EmployeeAll(ListAPIView):
     serializer_class = EmployeeSerializer
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
     filterset_fields = ['gender', 'category', 'industries',
                         'relationshipStatus', 'jobSearchStatus']
     queryset = Employee.objects.all()
