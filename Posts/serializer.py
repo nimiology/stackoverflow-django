@@ -23,8 +23,8 @@ class PostSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['tag'] = WalletSerializer(many=True, required=False)
-        self.fields['hashtag'] = HashtagSerializer(many=True, required=False)
+        self.fields['tag'] = WalletSerializer(many=True)
+        self.fields['hashtag'] = HashtagSerializer(many=True)
         return super(PostSerializer, self).to_representation(instance)
 
 
