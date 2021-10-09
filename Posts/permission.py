@@ -41,12 +41,6 @@ class IsAdmin(permissions.BasePermission):
             raise ValidationError('There is no Token!')
 
 
-# Is the request method Delete?
-class IsRequestMethodDelete(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.method == 'DELETE'
-
-
 class IsRequestMethodPost(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.method == 'POST'

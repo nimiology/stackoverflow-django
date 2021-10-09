@@ -7,14 +7,13 @@ from rest_framework.generics import (
 from rest_framework.mixins import (
     CreateModelMixin,
     RetrieveModelMixin,
-    DestroyModelMixin,
+    DestroyModelMixin, UpdateModelMixin,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Posts.serializer import *
-from Posts.permission import IsItOwner, IsItPostOwner, IsAdmin, \
-    IsRequestMethodDelete, IsRequestMethodPost, DeleteObjectByAdminOrOwner
+from Posts.permission import IsItOwner, IsItPostOwner, IsAdmin, IsRequestMethodPost, DeleteObjectByAdminOrOwner
 from users.utils import GetWallet
 from rest_framework.exceptions import ValidationError
 from Posts.utils import StandardResultsSetPagination
@@ -42,16 +41,13 @@ class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAP
     def perform_create(self, serializer):
         wallet = GetWallet(self.request)
         """Is there any pic or description?"""
-        if 'pic' in self.request.data:
-            if self.request.data['pic'] == '' and 'description' not in self.request.data:
-                raise ValidationError('You should give me one of pic or description or both')
         if 'description' in self.request.data:
             if self.request.data['description'] == '':
-                raise ValidationError('You should give me one of pic or description or both')
-        if 'pic' in self.request.data or 'description' in self.request.data:
-            return serializer.save(profile=wallet)
+                raise ValidationError('You should give me one of description')
+            else:
+                return serializer.save(profile=wallet)
         else:
-            raise ValidationError('You should give me one of pic or description or both')
+            raise ValidationError('You should give me one of description')
 
     def perform_destroy(self, instance):
         """Is he him?"""
@@ -65,8 +61,8 @@ class UserPostsAPI(ListAPIView):
 
     def get_queryset(self):
         """Get all User's Post"""
-        authID = self.kwargs['slug']
-        owner = Wallet.objects.get(id=authID)
+        username = self.kwargs['slug']
+        owner = Wallet.objects.get(username=username)
         qs = owner.post.all()
         return qs
 
@@ -159,7 +155,6 @@ class PostCommentsAPI(ListAPIView):
 class HashtagAPI(GenericAPIView, CreateModelMixin, DestroyModelMixin):
     serializer_class = HashtagSerializer
     queryset = Hashtag.objects.all()
-    permission_classes = [IsAdmin & IsRequestMethodDelete | IsRequestMethodPost]
 
     def post(self, request, *args, **kwargs):
         """Create Hashtag"""
@@ -167,10 +162,12 @@ class HashtagAPI(GenericAPIView, CreateModelMixin, DestroyModelMixin):
 
     def delete(self, request, *args, **kwargs):
         """Delete Hashtag By Admin"""
+        self.permission_classes = [IsAdmin]
+        self.check_permissions(self.request)
         return self.destroy(request, *args, **kwargs)
 
 
-class AllHashtagAPI(ListAPIView):
+class AllHashtagsAPI(ListAPIView):
     serializer_class = HashtagSerializer
     pagination_class = StandardResultsSetPagination
     queryset = Hashtag.objects.all()
@@ -184,6 +181,23 @@ class HashtagPostAPI(ListAPIView):
 
     def get_queryset(self):
         """Get Hashtag's Post"""
-        hashtag = get_object_or_404(Hashtag, id=self.kwargs['pk'])
+        hashtag = get_object_or_404(Hashtag, pk=self.kwargs['id'])
         qs = hashtag.post.all()
         return qs
+
+
+class MediaAPI(GenericAPIView, CreateModelMixin, DestroyModelMixin, UpdateModelMixin, RetrieveModelMixin):
+    serializer_class = MediaSerializer
+    queryset = Media.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)

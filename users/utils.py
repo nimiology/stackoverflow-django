@@ -24,6 +24,7 @@ def VerifyToken(token):
     try:
         decodedToken = jwt.decode(token, config(
             'AUTH_SECRET_KEY'), algorithms=["HS256"])
+        print(decodedToken)
         return decodedToken
     except Exception as e:
         raise ValidationError('Token is not Valid')

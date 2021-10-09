@@ -62,8 +62,8 @@ class AllUserQuestionsAPI(ListAPIView):
     filterset_fields = ['title', 'text']
 
     def get_queryset(self):
-        authID = self.kwargs['slug']
-        qs = Question.objects.filter(profile__id=authID)
+        username = self.kwargs['slug']
+        qs = Question.objects.filter(profile__username=username)
         return qs
 
 

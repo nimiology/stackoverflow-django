@@ -20,11 +20,11 @@ class Question(models.Model):
     category = models.ManyToManyField(Category, blank=True, related_name=relatedName)
     tech = models.ManyToManyField(Tech, blank=True, related_name=relatedName)
     text = models.TextField()
-    pic = models.ImageField(upload_to=upload_image_Question, blank=True)
-    slug = models.SlugField(blank=True)
+    slug = models.SlugField(blank=True,max_length=100)
     upVote = models.ManyToManyField(Wallet, blank=True, related_name='questionUpVote')
     downVote = models.ManyToManyField(Wallet, blank=True, related_name='questionDownVote')
     date = models.DateTimeField(auto_now_add=True)
+    seo = models.JSONField(blank=True,null=True)
 
     def __str__(self):
         return f'{self.profile}-{self.title}'
@@ -36,10 +36,10 @@ class Answer(models.Model):
     profile = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name=relatedName)
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name=relatedName)
     text = models.TextField()
-    pic = models.ImageField(upload_to=upload_image_Answer, blank=True)
     upVote = models.ManyToManyField(Wallet, blank=True, related_name='answerUpVote')
     downVote = models.ManyToManyField(Wallet, blank=True, related_name='answerDownVote')
     date = models.DateTimeField(auto_now_add=True)
+    seo = models.JSONField(blank=True,null=True)
 
     def __str__(self):
         return f'{self.profile}-{self.question.title}'
@@ -68,7 +68,7 @@ def AnswerUpVotePreSave(sender, instance, *args, **kwargs):
 def AnswerDownVotePreSave(sender, instance, *args, **kwargs):
     Notif = Notification(profile=instance.question.profile,
                          text='Your Answer Voted Down',
-                         slug = f'question/{instance.question.slug}')
+                         slug=f'question/{instance.question.slug}')
 
     Notif.save()
 

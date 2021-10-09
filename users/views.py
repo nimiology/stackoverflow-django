@@ -303,8 +303,8 @@ class CompanyDocuments(ListAPIView):
 
     def get_queryset(self):
         """Get Company's Document"""
-        id = self.kwargs['slug']
-        company = get_object_or_404(Company, profile__id=id)
+        username = self.kwargs['slug']
+        company = get_object_or_404(Company, profile__username=username)
         companyDocuments = company.companyDocument.all()
         return companyDocuments
 
@@ -314,20 +314,17 @@ class VerifyCompany(APIView):
 
     def post(self, request, *args, **kwargs):
         """Verify Company"""
-        company = get_object_or_404(Company, profile__id=kwargs['slug'])
-        if company.status == 'w':
-            serializer = CompanyProfileSerializer(company)
-            if 'accept' in request.get_full_path():
-                company.status = 'a'
-            elif 'reject' in request.get_full_path():
-                company.status = 'r'
-            else:
-                raise Http404
-            company.save()
-            data = serializer.data
-            statusResponse = status.HTTP_200_OK
+        company = get_object_or_404(Company, profile__username=kwargs['slug'])
+        serializer = CompanyProfileSerializer(company)
+        if 'accept' in request.get_full_path():
+            company.status = 'a'
+        elif 'reject' in request.get_full_path():
+            company.status = 'r'
         else:
-            raise ValidationError('Previously reviewed!')
+            raise Http404
+        company.save()
+        data = serializer.data
+        statusResponse = status.HTTP_200_OK
 
         return Response(data=data, status=statusResponse)
 
@@ -392,8 +389,8 @@ class ProfileEducationalBackground(ListAPIView):
 
     def get_queryset(self):
         """Get profile's EducationalBackground"""
-        id = self.kwargs['slug']
-        employee = get_object_or_404(Employee, profile__id=id)
+        username = self.kwargs['slug']
+        employee = get_object_or_404(Employee, profile__username=username)
         education = employee.educationalBackground.all()
         return education
 
@@ -443,8 +440,8 @@ class ProfileWorkExperience(ListAPIView):
 
     def get_queryset(self):
         """Get profile's WorkExperience"""
-        slug = self.kwargs['slug']
-        company = get_object_or_404(Wallet, id=slug)
+        username = self.kwargs['slug']
+        company = get_object_or_404(Wallet, username=username)
         achievement = company.workExperience.all()
         return achievement
 
@@ -494,8 +491,8 @@ class ProfileAchievement(ListAPIView):
 
     def get_queryset(self):
         """Get profile's Achievment"""
-        id = self.kwargs['slug']
-        company = get_object_or_404(Wallet, id=id)
+        username = self.kwargs['slug']
+        company = get_object_or_404(Wallet, username=username)
         achievement = company.achievement.all()
         return achievement
 
@@ -584,17 +581,17 @@ class AllAppliesForJob(ListAPIView):
 
     def get_queryset(self):
         """Get profile's Job Offer"""
-        authID = self.kwargs['slug']
+        username = self.kwargs['slug']
         if 'status' in self.request.data:
             if self.request.data['status'] in ['w', 'r', 'a']:
                 qs = ApplyForJob.objects.filter(
-                    Q(company__profile__id=authID) | Q(employee__profile__id=authID),
+                    Q(company__profile__username=username) | Q(employee__profile__username=username),
                     status=self.request.data['status'])
             else:
                 qs = ApplyForJob.objects.filter(
-                    Q(company__profile__id=authID) | Q(employee__profile__id=authID))
+                    Q(company__profile__username=username) | Q(employee__profile__username=username))
         else:
-            qs = ApplyForJob.objects.filter(Q(company__profile__id=authID) | Q(employee__profile__id=authID))
+            qs = ApplyForJob.objects.filter(Q(company__profile__username=username) | Q(employee__profile__username=username))
         return qs
 
 
@@ -641,19 +638,19 @@ class ReportReasonAPI(GenericAPIView, CreateModelMixin,
     def post(self, request, *args, **kwargs):
         """Create Report Reason By Admin"""
         self.permission_classes = [IsAdmin]
-        self.check_permissions(self.request)
+        self.check_permissions(request)
         return self.create(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         """Edit Report Reason By Admin"""
         self.permission_classes = [IsAdmin]
-        self.check_permissions(self.request)
+        self.check_permissions(request)
         return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         """Delete Report Reason By Admin"""
         self.permission_classes = [IsAdmin]
-        self.check_permissions(self.request)
+        self.check_permissions(request)
         return self.destroy(request, *args, **kwargs)
 
 
@@ -710,8 +707,7 @@ class GetAllProfileJobOffer(ListAPIView):
 
     def get_queryset(self):
         """get profile job offer"""
-        profile = FindWallet(self.kwargs['slug'])
-        company = GetCompany(profile)
+        company = get_object_or_404(Company, profile__username=self.kwargs['slug'])
         qs = company.jobOffer.all()
         return qs
 
@@ -724,7 +720,7 @@ class ReportAPI(GenericAPIView, CreateModelMixin,
     def get(self, request, *args, **kwargs):
         """Get Report Reason By Admin"""
         self.permission_classes = [IsAdmin]
-        self.check_permissions(self.request)
+        self.check_permissions(request)
         return self.retrieve(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -734,7 +730,7 @@ class ReportAPI(GenericAPIView, CreateModelMixin,
     def delete(self, request, *args, **kwargs):
         """Delete Report Reason By Admin"""
         self.permission_classes = [IsAdmin]
-        self.check_permissions(self.request)
+        self.check_permissions(request)
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -749,6 +745,7 @@ class ReportsAPI(ListAPIView):
     serializer_class = ReportSerializer
     pagination_class = StandardResultsSetPagination
     # Search Fields
+    permission_classes = [IsAdmin]
     filterset_fields = ['type', 'slug']
     queryset = Report.objects.all()
 

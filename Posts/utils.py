@@ -25,10 +25,12 @@ def PictureAndVideoValidator(value):
         raise ValidationError('the file is not acceptable')
 
 
-def upload_file_Post(instance, filename):
+def upload_file(instance, filename):
     name, ext = get_filename_ext(filename)
-    final_name = f"{instance.slug}{ext}"
-    return f"Posts/{final_name}"
+    letters_str = string.ascii_letters + string.digits
+    letters = list(letters_str)
+    final_name = f"{''.join(random.choice(letters) for _ in range(40))}{ext}"
+    return f"{final_name}"
 
 
 def upload_image_Question(instance, filename):
@@ -47,7 +49,7 @@ def slug_genrator(cls):
     letters_str = string.ascii_letters + string.digits
     letters = list(letters_str)
     while True:
-        SLUG = "".join(random.choice(letters) for _ in range(50))
+        SLUG = "".join(random.choice(letters) for _ in range(40))
         qs = cls.objects.filter(slug=SLUG)
         if not qs.exists():
             break
@@ -65,7 +67,7 @@ def upload_companyDocument(instance, filename):
     name, ext = get_filename_ext(filename)
     letters_str = string.ascii_letters + string.digits
     letters = list(letters_str)
-    randomSTR = "".join(random.choice(letters) for _ in range(50))
+    randomSTR = "".join(random.choice(letters) for _ in range(40))
     final_name = f"{randomSTR}{ext}"
     return f"profiles/{instance.company.profile.id}/{final_name}"
 

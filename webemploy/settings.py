@@ -73,7 +73,7 @@ DATABASES = {
         'NAME': config('NAME', default=BASE_DIR / 'db.sqlite3'),
         'USER': config('DB_USER', default=""),
         'PASSWORD': config('PASSWORD', default=""),
-        'HOST': config('HOST', default=""),
+        'HOST': config('HOST_POSTGRES', default=""),
         'PORT': config('PORT', default="")
     }
 }

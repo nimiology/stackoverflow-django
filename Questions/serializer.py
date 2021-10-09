@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from Posts.serializer import MediaSerializer
 from Questions.models import *
 from users.serializer import WalletSerializer, TechSerializer, CategorySerializer
 
@@ -16,6 +17,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         self.fields['category'] = CategorySerializer(read_only=True, many=True)
         self.fields['tech'] = TechSerializer(read_only=True, many=True)
+        self.fields['media'] = MediaSerializer(many=True, read_only=True)
         return super(QuestionSerializer, self).to_representation(instance)
 
 
@@ -28,3 +30,7 @@ class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = '__all__'
+
+    def to_representation(self, instance):
+        self.fields['media'] = MediaSerializer(many=True, read_only=True)
+        return super(AnswerSerializer, self).to_representation(instance)

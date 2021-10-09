@@ -8,7 +8,7 @@ from Posts.utils import *
 
 class Wallet(models.Model):
     id = models.CharField(max_length=40, primary_key=True)
-    username = models.CharField(max_length=100)
+    username = models.CharField(max_length=100, unique=True)
     following = models.ManyToManyField(
         'Wallet', blank=True, related_name='followers')
     ban = models.BooleanField(default=False)
@@ -40,10 +40,11 @@ class Category(models.Model):
     ]
 
     industry = models.ForeignKey(
-        Industries, null=True,  on_delete=models.CASCADE, related_name='category')
+        Industries, null=True, on_delete=models.CASCADE, related_name='category')
     title = models.CharField(max_length=500, unique=True)
     upperCategory = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True,
                                       related_name='reverseCategory')
+    description = models.TextField(blank=True)
     status = models.CharField(choices=STATUS_CHOICES,
                               default='w', max_length=1)
 
@@ -126,6 +127,7 @@ class JobOffer(models.Model):
     jobType = models.CharField(max_length=1, choices=JOB_TYPE_CHOICES)
     salary = models.CharField(max_length=1024, blank=True)
     text = models.TextField(blank=True)
+    seo = models.JSONField(blank=True, null=True)
 
 
 class Employee(models.Model):

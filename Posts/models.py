@@ -10,14 +10,13 @@ from users.models import (
     Notification,
 )
 from Posts.utils import (
-    upload_file_Post,
     PictureAndVideoValidator,
-    slug_genrator,
+    slug_genrator, upload_file,
 )
 
 
 class Hashtag(models.Model):
-    title = models.CharField(max_length=1024, unique=True)
+    title = models.CharField(max_length=1024, unique=True, primary_key=True)
 
     def __str__(self):
         return self.title
@@ -26,14 +25,13 @@ class Hashtag(models.Model):
 class Post(models.Model):
     profile = models.ForeignKey(
         Wallet, on_delete=models.CASCADE, related_name='post')
-    slug = models.SlugField(blank=True)
-    pic = models.FileField(upload_to=upload_file_Post,
-                           blank=True, validators=[PictureAndVideoValidator])
+    slug = models.SlugField(blank=True, max_length=100)
     tag = models.ManyToManyField(Wallet, blank=True, related_name='tagInPost')
     description = models.TextField(blank=True)
     hashtag = models.ManyToManyField(Hashtag, blank=True, related_name='post')
     like = models.ManyToManyField(Wallet, blank=True, related_name='likes')
     date = models.DateTimeField(auto_now_add=True)
+    seo = models.JSONField(blank=True, null=True)
 
     def __str__(self):
         return f'{self.profile}-{self.pk}'
@@ -55,6 +53,18 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'{self.profile}-{self.post}'
+
+
+class Media(models.Model):
+    thumbnail = models.FileField(upload_to=upload_file, blank=True, validators=[PictureAndVideoValidator])
+    alt = models.CharField(max_length=300)
+    media = models.FileField(upload_to=upload_file, blank=True, validators=[PictureAndVideoValidator])
+    seo = models.JSONField(blank=True, null=True)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, null=True, blank=True, related_name='media')
+    question = models.ForeignKey('Questions.Question', on_delete=models.CASCADE, null=True, blank=True,
+                                 related_name='media')
+    answer = models.ForeignKey('Questions.Answer', on_delete=models.CASCADE, null=True, blank=True,
+                               related_name='media')
 
 
 def Post_presave(sender, instance, *args, **kwargs):
