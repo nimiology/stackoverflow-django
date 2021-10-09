@@ -74,9 +74,11 @@ class Register(APIView):
             if js_response['status'] != False:
 
                 wallet_id = js_response['data']['wallet']['id']
+                username = serializer.validated_data['username']
 
                 # ? Create wallet object
-                new_wallet = models.Wallet.objects.create(id=wallet_id)
+                new_wallet = models.Wallet.objects.create(
+                    id=wallet_id, username=username)
                 new_wallet.save()
 
                 # ? Create user object
