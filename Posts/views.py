@@ -26,9 +26,6 @@ class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAP
     queryset = Post.objects.all()
     lookup_field = 'slug'
 
-    def get_object(self):
-        return get_object_or_404(Post, slug=self.kwargs['slug'])
-
     def get(self, request, *args, **kwargs):
         """Get Post"""
         return self.retrieve(request, *args, **kwargs)
