@@ -213,22 +213,15 @@ class ReportSerializer(serializers.ModelSerializer):
         return super(ReportSerializer, self).to_representation(instance)
 
 
-
 class CompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company
-        fields = ['profilePic', 'companyName', 'about', 'workEmail', 'phoneNumber', 'website',
-                  'foundedIn', 'category', 'industries', 'employeeCount', 'needEmployee', 'status']
+        fields = '__all__'
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ['name', 'profilePic', 'category', 'about',
-                  'address', 'phoneNumber',
-                  'birthday', 'gender', 'relationshipStatus', 'jobSearchStatus',
-                  'minimumAnnualSalary', 'techWantsToWorkWith',
-                  'techWantsToNotWorkWith', 'role', 'industries', 'industriesToExclude',
-                  'jobType', 'hire']
+        fields = '__all__'
