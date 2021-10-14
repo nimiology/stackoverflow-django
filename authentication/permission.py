@@ -1,29 +1,19 @@
 from rest_framework import permissions
 from rest_framework.permissions import SAFE_METHODS
 from users import models
-from authentication.utils import get_token, get_wallet, verify_token, verify_token_for_admin, verify_token_for_user
+from authentication.utils import get_token, get_wallet, get_wallet_and_verify_token, verify_token, verify_token_for_admin, verify_token_for_user
 
 
 class CompanyPermission(permissions.BasePermission):
-
     def has_permission(self, request, view):
-        token = get_token(request)
-        if verify_token(token):
-            wallet = get_wallet(token)
-            return models.Company.objects.filter(profile=wallet).exists()
-        else:
-            return False
+        wallet = get_wallet_and_verify_token(request=request)
+        return models.Company.objects.filter(profile=wallet).exists()
 
 
 class EmployeePermission(permissions.BasePermission):
-
     def has_permission(self, request, view):
-        token = get_token(request)
-        if verify_token(token):
-            wallet = get_wallet(token)
-            return models.Employee.objects.filter(profile=wallet).exists()
-        else:
-            return False
+        wallet = get_wallet_and_verify_token(request=request)
+        return models.Employee.objects.filter(profile=wallet).exists()
 
 
 class AdminPermission(permissions.BasePermission):
@@ -54,12 +44,8 @@ class OwnerOrReadOnly(permissions.BasePermission):
         if request.method in SAFE_METHODS:
             return True
         else:
-            token = get_token(request)
-            if verify_token(token):
-                wallet = get_wallet(token)
-                return obj.profile == wallet
-            else:
-                return False
+            wallet = get_wallet_and_verify_token(request=request)
+            return obj.profile == wallet
 
 
 class Admin_And_User(permissions.BasePermission):

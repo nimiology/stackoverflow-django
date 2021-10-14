@@ -48,7 +48,8 @@ class Register(APIView):
             if js_response['status'] != False:
                 wallet_id = js_response['data']['wallet']['id']
                 # ? Create wallet object
-                new_wallet = Wallet.objects.create(id=wallet_id)
+                new_wallet = Wallet.objects.create(
+                    id=wallet_id, username=serializer.validated_data['username'])
                 # ? Create user object
                 create_obj_by_type(kwargs["type"], new_wallet)
                 return Response(js_response, status=response.status_code)
@@ -67,6 +68,8 @@ class Login(APIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             url = get_url_with_service_and_role(kwargs["type"], "/login/")
+            # # ! request to mail service :
+            # send_request_to_server(url=..../auth/micro/sevice/auth/, data={"wallet_id":"123548646"}, request_type="post")
             return send_request_to_server(url=url, serializer=serializer, request_type="post")
         else:
             raise exceptions.ValidationError(detail="Invalid data", code=400)
