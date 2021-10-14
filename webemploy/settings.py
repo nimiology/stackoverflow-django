@@ -26,7 +26,8 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "authentication.apps.AuthenticationConfig",
     "Posts.apps.PostsConfig",
-    "Questions.apps.QuestionsConfig"
+    "Questions.apps.QuestionsConfig",
+    "Mail.apps.MailConfig"
 
 ]
 

@@ -19,6 +19,9 @@ urlpatterns = [
     # users
     path('', include('users.urls')),
 
+    # Mail
+    path('mail/', include('Mail.urls')),
+
 ]
 if settings.DEBUG:
     # add media static files
