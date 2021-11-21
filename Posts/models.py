@@ -23,8 +23,7 @@ class Hashtag(models.Model):
 
 
 class Post(models.Model):
-    profile = models.ForeignKey(
-        Wallet, on_delete=models.CASCADE, related_name='post')
+    profile = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='post')
     slug = models.SlugField(blank=True, max_length=100)
     tag = models.ManyToManyField(Wallet, blank=True, related_name='tagInPost')
     description = models.TextField(blank=True)
@@ -38,17 +37,12 @@ class Post(models.Model):
 
 
 class Comment(models.Model):
-    profile = models.ForeignKey(
-        Wallet, on_delete=models.CASCADE, related_name='comment')
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='comment')
-    replyTo = models.ForeignKey('self', blank=True, null=True,
-                                on_delete=models.CASCADE, related_name='commentsReply')
+    profile = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='comment')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comment')
+    replyTo = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE, related_name='commentsReply')
     text = models.TextField()
-    tag = models.ManyToManyField(
-        Wallet, blank=True, related_name='commentReply')
-    like = models.ManyToManyField(
-        Wallet, blank=True, related_name='commentLikes')
+    tag = models.ManyToManyField(Wallet, blank=True, related_name='commentReply')
+    like = models.ManyToManyField(Wallet, blank=True, related_name='commentLikes')
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

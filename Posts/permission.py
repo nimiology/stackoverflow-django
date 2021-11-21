@@ -9,6 +9,22 @@ from rest_framework import permissions
 
 
 # Is he owner of the object?
+class IsAuthenticate(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return bool(GetWallet(request))
+
+
+class MediaOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        user = GetWallet(request)
+        if obj.post:
+            return obj.post.profile == user
+        elif obj.question:
+            return obj.question.profile == user
+        elif obj.answer:
+            return obj.answer.profile == user
+
+
 class IsItOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.profile == GetWallet(request)

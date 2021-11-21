@@ -11,9 +11,11 @@ from rest_framework.mixins import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import PermissionDenied
 
 from Posts.serializer import *
-from Posts.permission import IsItOwner, IsItPostOwner, IsAdmin, IsRequestMethodPost, DeleteObjectByAdminOrOwner
+from Posts.permission import IsItOwner, IsItPostOwner, IsAdmin, IsRequestMethodPost, DeleteObjectByAdminOrOwner, \
+    IsAuthenticate, MediaOwner
 from users.utils import GetWallet
 from rest_framework.exceptions import ValidationError
 from Posts.utils import StandardResultsSetPagination
@@ -194,10 +196,37 @@ class MediaAPI(GenericAPIView, CreateModelMixin, DestroyModelMixin, UpdateModelM
         return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticate, MediaOwner]
         return self.update(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticate, MediaOwner]
         return self.create(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticate, MediaOwner]
         return self.destroy(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        self.check_object_permissions(self.request, self.get_object())
+        return serializer.save()
+
+    def perform_create(self, serializer):
+        post = serializer.validated_data.get('post')
+        question = serializer.validated_data.get('question')
+        answer = serializer.validated_data.get('answer')
+        user = GetWallet(self.request)
+        if post:
+            if post.profile == user:
+                return serializer.save()
+        elif question:
+            if question.profile == user:
+                return serializer.save()
+        elif answer:
+            if answer.profile == user:
+                return serializer.save()
+        raise PermissionDenied
+
+    def perform_destroy(self, instance):
+        self.check_object_permissions(self.request, instance)
+        return instance.delete()
