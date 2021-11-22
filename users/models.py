@@ -9,8 +9,7 @@ from Posts.utils import *
 class Wallet(models.Model):
     id = models.CharField(max_length=40, primary_key=True)
     username = models.CharField(max_length=100, unique=True)
-    following = models.ManyToManyField(
-        'Wallet', blank=True, related_name='followers')
+    following = models.ManyToManyField('Wallet', blank=True, related_name='followers')
     ban = models.BooleanField(default=False)
 
     def __str__(self):
@@ -25,8 +24,7 @@ class Industries(models.Model):
     ]
 
     title = models.CharField(max_length=1024, unique=True)
-    status = models.CharField(choices=STATUS_CHOICES,
-                              default='w', max_length=1)
+    status = models.CharField(choices=STATUS_CHOICES,default='w', max_length=1)
 
     def __str__(self):
         return self.title
@@ -39,23 +37,19 @@ class Category(models.Model):
         ('r', 'rejected'),
     ]
 
-    industry = models.ForeignKey(
-        Industries, null=True, on_delete=models.CASCADE, related_name='category')
+    industry = models.ForeignKey(Industries, null=True, on_delete=models.CASCADE, related_name='category')
     title = models.CharField(max_length=500, unique=True)
-    upperCategory = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True,
-                                      related_name='reverseCategory')
+    upperCategory = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name='reverseCategory')
     description = models.TextField(blank=True)
-    status = models.CharField(choices=STATUS_CHOICES,
-                              default='w', max_length=1)
+    status = models.CharField(choices=STATUS_CHOICES, default='w', max_length=1)
 
     def __str__(self):
         return self.title
 
 
 class Tech(models.Model):
-    title = models.CharField(max_length=1024, unique=True)
-    industry = models.ForeignKey(
-        Industries, blank=True, on_delete=models.CASCADE, related_name='tech')
+    title = models.CharField(max_length=1024, unique=True, null=True, blank=True)
+    industry = models.ForeignKey(Industries, null=True, blank=True, on_delete=models.CASCADE, related_name='tech')
 
     def __str__(self):
         return self.title
@@ -63,8 +57,7 @@ class Tech(models.Model):
 
 class Job(models.Model):
     title = models.CharField(max_length=1024, unique=True)
-    industry = models.ForeignKey(
-        Industries, blank=True, null=True, on_delete=models.CASCADE, related_name='role')
+    industry = models.ForeignKey(Industries, blank=True, null=True, on_delete=models.CASCADE, related_name='role')
 
     def __str__(self):
         return self.title
@@ -79,8 +72,7 @@ class Company(models.Model):
         ('r', 'rejected'),
     ]
 
-    profile = models.OneToOneField(
-        "Wallet", on_delete=models.CASCADE, related_name=relatedName)
+    profile = models.OneToOneField("Wallet", on_delete=models.CASCADE, related_name=relatedName)
     profilePic = models.ImageField(upload_to=upload_profilePic, blank=True)
     companyName = models.CharField(max_length=2048)
     about = models.TextField(blank=True)
@@ -88,10 +80,8 @@ class Company(models.Model):
     phoneNumber = models.CharField(max_length=15, blank=True)
     website = models.CharField(max_length=500, blank=True)
     foundedIn = models.DateField(blank=True, null=True)
-    category = models.ManyToManyField(
-        Category, blank=True, related_name=relatedName)
-    industries = models.ManyToManyField(
-        Industries, blank=True, related_name=relatedName)
+    category = models.ManyToManyField(Category, blank=True, related_name=relatedName)
+    industries = models.ManyToManyField(Industries, blank=True, related_name=relatedName)
     employeeCount = models.CharField(max_length=1024, blank=True)
     needEmployee = models.BooleanField(blank=True, null=True)
     status = models.CharField(choices=STATUS_CHOICES,
@@ -102,8 +92,7 @@ class Company(models.Model):
 
 
 class CompanyDocument(models.Model):
-    company = models.ForeignKey(
-        Company, on_delete=models.CASCADE, related_name='companyDocument')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='companyDocument')
     document = models.FileField(upload_to=upload_companyDocument)
 
 
