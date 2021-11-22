@@ -441,9 +441,7 @@ class ProfileWorkExperience(ListAPIView):
     def get_queryset(self):
         """Get profile's WorkExperience"""
         username = self.kwargs['slug']
-        company = get_object_or_404(Wallet, username=username)
-        achievement = company.workExperience.all()
-        return achievement
+        return WorkExperience.objects.filter(profile__username=username)
 
 
 class AchievementAPI(GenericAPIView, CreateModelMixin,
@@ -492,9 +490,7 @@ class ProfileAchievement(ListAPIView):
     def get_queryset(self):
         """Get profile's Achievment"""
         username = self.kwargs['slug']
-        company = get_object_or_404(Wallet, username=username)
-        achievement = company.achievement.all()
-        return achievement
+        return Achievement.objects.filter(profile__username=username)
 
 
 class CustomNotification(GenericAPIView, CreateModelMixin):
