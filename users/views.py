@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.http import Http404
 from rest_framework import status
+from rest_framework.exceptions import NotFound
 from rest_framework.generics import GenericAPIView, ListAPIView, get_object_or_404
 from rest_framework.mixins import (CreateModelMixin,
                                    RetrieveModelMixin,
@@ -550,9 +551,12 @@ class ApplyForJobAPI(GenericAPIView, CreateModelMixin,
         try:
             company = profile.company
             return serializer.save(company=company, sender='c', status='w')
-        except:
-            employee = profile.employee
-            return serializer.save(employee=employee, sender='e', status='w')
+        except Company.DoesNotExist:
+            try:
+                employee = profile.employee
+                return serializer.save(employee=employee, sender='e', status='w')
+            except Employee.DoesNotExist:
+                raise ValidationError('There is no employee or company on this token!')
 
     def perform_update(self, serializer):
         profile = GetWallet(self.request)
@@ -587,7 +591,8 @@ class AllAppliesForJob(ListAPIView):
                 qs = ApplyForJob.objects.filter(
                     Q(company__profile__username=username) | Q(employee__profile__username=username))
         else:
-            qs = ApplyForJob.objects.filter(Q(company__profile__username=username) | Q(employee__profile__username=username))
+            qs = ApplyForJob.objects.filter(
+                Q(company__profile__username=username) | Q(employee__profile__username=username))
         return qs
 
 
@@ -703,9 +708,7 @@ class GetAllProfileJobOffer(ListAPIView):
 
     def get_queryset(self):
         """get profile job offer"""
-        company = get_object_or_404(Company, profile__username=self.kwargs['slug'])
-        qs = company.jobOffer.all()
-        return qs
+        return JobOffer.objects.filter(company__profile__username=self.kwargs['slug'])
 
 
 class ReportAPI(GenericAPIView, CreateModelMixin,
@@ -754,18 +757,11 @@ class SearchJobOffers(ListAPIView):
     filterset_fields = ['title', 'job', 'tech', 'category', 'count', 'jobType', 'text']
 
 
-class SearchCompany(ListAPIView):
+class CompanyAll(ListAPIView):
     serializer_class = CompanyProfileSerializer
     queryset = Company.objects.all().order_by('-id')
     pagination_class = StandardResultsSetPagination
     filterset_fields = ['companyName', 'about', 'foundedIn', 'employeeCount', 'industries', 'category', 'needEmployee']
-
-
-class CompanyAll(ListAPIView):
-    serializer_class = CompanySerializer
-    pagination_class = StandardResultsSetPagination
-    filterset_fields = ['foundedIn', 'category', 'industries']
-    queryset = Company.objects.all()
 
 
 class CompanyRU(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
@@ -778,6 +774,8 @@ class CompanyRU(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
 
     def post(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
+    def perform_update(self, serializer):
+        return serializer.save(profile=self.get_object().profile)
 
 
 class EmployeeAll(ListAPIView):
@@ -798,7 +796,8 @@ class EmployeeRU(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
 
     def post(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
-
+    def perform_update(self, serializer):
+        return serializer.save(profile=self.get_object().profile)
 
 class BanProfileAPI(APIView):
     permission_classes = [IsAdmin]
@@ -811,5 +810,3 @@ class BanProfileAPI(APIView):
         wallet.save()
         serializer = WalletSerializer(wallet)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-

@@ -63,8 +63,6 @@ urlpatterns = [
     path('report', ReportAPI.as_view()),
     path('reports', ReportsAPI.as_view()),
     path('report/<int:pk>', ReportAPI.as_view()),
-    
-    path('company/search', SearchCompany.as_view()),
 
     path('user/<slug>/ban', BanProfileAPI.as_view()),
 

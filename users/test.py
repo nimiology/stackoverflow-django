@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from users.models import Wallet, Industries, Tech, Job, Category, Company, CompanyDocument, Employee, WorkExperience, \
-    Achievement, EducationalBackground
+    Achievement, EducationalBackground, Notification, ApplyForJob, JobOffer, ReportReason, Report
 
 
 class WalletTest(APITestCase):
@@ -438,4 +438,321 @@ class EducationalBackgroundTest(APITestCase):
     def test_get_work_experiences(self):
         response = self.client.get(f'/user/{self.educationalBackground.profile.profile.username}/educationalbackground',
                                    HTTP_AUTHORIZATION=self.tokenUser1, )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class NotificationTest(APITestCase):
+    def setUp(self):
+        self.tokenAdmin = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': 'ee8ac4bc-6bd1-4d80-956f-f6589ad9e691',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.tokenUser1 = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': '123e4567-e89b-12d3-a456-426614174000',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1.save()
+        self.notification = Notification(profile=self.user1, text='test')
+        self.notification.save()
+
+    def test_notifications(self):
+        response = self.client.get('/notification', HTTP_AUTHORIZATION=self.tokenUser1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_custom_notification(self):
+        response = self.client.post('/notification/custom', HTTP_AUTHORIZATION=self.tokenAdmin,
+                                    data={'profile': self.user1.pk, 'text': 'test'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_mark_as_read(self):
+        response = self.client.post(f'/notification/{self.notification.pk}/markasread',
+                                    HTTP_AUTHORIZATION=self.tokenUser1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class ApplyForJobTest(APITestCase):
+    def setUp(self):
+        self.tokenAdmin = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': 'ee8ac4bc-6bd1-4d80-956f-f6589ad9e691',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.tokenUser1 = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': '123e4567-e89b-12d3-a456-426614174000',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.tokenUser2 = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': '123e4567-e89b-12d3-a456-426614174002',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1.save()
+        self.user2 = Wallet(id='123e4567-e89b-12d3-a456-426614174002', username='test2')
+        self.user2.save()
+        self.employee = Employee(profile=self.user1, name='test')
+        self.employee.save()
+        self.company = Company(profile=self.user2, companyName='test')
+        self.company.save()
+        self.apply4job = ApplyForJob(employee=self.employee, company=self.company, sender='c',
+                                     text='test')
+        self.apply4job.save()
+
+    def test_create_apply_for_job(self):
+        response = self.client.post('/applyforjob', HTTP_AUTHORIZATION=self.tokenUser1,
+                                    data={'company': self.company.pk, 'text': 'test'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_edit_apply_for_job(self):
+        response = self.client.put(f'/applyforjob/{self.apply4job.pk}', HTTP_AUTHORIZATION=self.tokenUser2,
+                                   data={'text': 'a'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_apply_for_job(self):
+        response = self.client.get(f'/applyforjob/{self.apply4job.pk}', HTTP_AUTHORIZATION=self.tokenUser1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_reject_apply_for_job(self):
+        response = self.client.post(f'/applyforjob/{self.apply4job.pk}/reject', HTTP_AUTHORIZATION=self.tokenUser1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_accept_apply_for_job(self):
+        response = self.client.post(f'/applyforjob/{self.apply4job.pk}/accept', HTTP_AUTHORIZATION=self.tokenUser1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_applies_for_job(self):
+        response = self.client.get(f'/user/{self.user1.username}/applyforjob', HTTP_AUTHORIZATION=self.tokenUser1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class JobOfferTest(APITestCase):
+    def setUp(self):
+        self.tokenAdmin = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': 'ee8ac4bc-6bd1-4d80-956f-f6589ad9e691',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.tokenUser1 = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': '123e4567-e89b-12d3-a456-426614174000',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1.save()
+        self.company = Company(profile=self.user1, companyName='test')
+        self.company.save()
+        self.industry = Industries(title='test')
+        self.industry.save()
+        self.category = Category(title='test', industry=self.industry)
+        self.category.save()
+        self.joboffer = JobOffer(company=self.company, title='test', count=20, jobType='F')
+        self.joboffer.save()
+        self.joboffer.category.add(self.category)
+
+    def test_create_job_offer(self):
+        response = self.client.post('/joboffer', HTTP_AUTHORIZATION=self.tokenUser1,
+                                    data={'title': 'test', 'category': self.category.id,
+                                          'count': 24, 'jobType': 'F'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_edit_job_offer(self):
+        response = self.client.post(f'/joboffer/{self.joboffer.pk}', HTTP_AUTHORIZATION=self.tokenUser1,
+                                    data={'title': 'test', 'category': self.category.id,
+                                          'count': 24, 'jobType': 'F'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_get_job_offer(self):
+        response = self.client.get(f'/joboffer/{self.joboffer.pk}', HTTP_AUTHORIZATION=self.tokenUser1, )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_job_offers(self):
+        response = self.client.get(f'/joboffers', HTTP_AUTHORIZATION=self.tokenUser1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_company_job_offers(self):
+        response = self.client.get(f'/company/{self.company.profile.username}/joboffers',
+                                   HTTP_AUTHORIZATION=self.tokenUser1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_job_offer(self):
+        response = self.client.delete(f'/joboffer/{self.joboffer.pk}', HTTP_AUTHORIZATION=self.tokenUser1, )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class ReportReasonTest(APITestCase):
+    def setUp(self):
+        self.tokenAdmin = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': 'ee8ac4bc-6bd1-4d80-956f-f6589ad9e691',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.tokenUser1 = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': '123e4567-e89b-12d3-a456-426614174000',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1.save()
+        self.reportreason = ReportReason(title='test')
+        self.reportreason.save()
+
+    def test_create_report_reason(self):
+        response = self.client.post('/reportreason', HTTP_AUTHORIZATION=self.tokenAdmin,
+                                    data={'title': 'test'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_edit_report_reason(self):
+        response = self.client.put(f'/reportreason/{self.reportreason.pk}', HTTP_AUTHORIZATION=self.tokenAdmin,
+                                   data={'title': 'test7'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_report_reason(self):
+        response = self.client.get(f'/reportreason/{self.reportreason.pk}', HTTP_AUTHORIZATION=self.tokenAdmin)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_report_reason(self):
+        response = self.client.delete(f'/reportreason/{self.reportreason.pk}', HTTP_AUTHORIZATION=self.tokenAdmin)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_get_report_reasons(self):
+        response = self.client.get(f'/reportreasons', HTTP_AUTHORIZATION=self.tokenAdmin)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class ReportTest(APITestCase):
+    def setUp(self):
+        self.tokenAdmin = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': 'ee8ac4bc-6bd1-4d80-956f-f6589ad9e691',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.tokenUser1 = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': '123e4567-e89b-12d3-a456-426614174000',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1.save()
+        self.reportreason = ReportReason(title='test')
+        self.reportreason.save()
+        self.report = Report(type='p', slug='question', reason=self.reportreason, reporter=self.user1)
+        self.report.save()
+
+    def test_create_report(self):
+        response = self.client.post('/report', HTTP_AUTHORIZATION=self.tokenUser1,
+                                    data={'type': 'q', 'slug': self.report.slug,
+                                          'reason': self.reportreason.pk})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_get_report(self):
+        response = self.client.get(f'/report/{self.report.pk}', HTTP_AUTHORIZATION=self.tokenAdmin)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_reports(self):
+        response = self.client.get(f'/reports', HTTP_AUTHORIZATION=self.tokenAdmin)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_report(self):
+        response = self.client.delete(f'/report/{self.report.pk}', HTTP_AUTHORIZATION=self.tokenAdmin)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class EmployeeTest(APITestCase):
+    def setUp(self):
+        self.tokenAdmin = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': 'ee8ac4bc-6bd1-4d80-956f-f6589ad9e691',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.tokenUser1 = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': '123e4567-e89b-12d3-a456-426614174000',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1.save()
+        self.employee = Employee(profile=self.user1, name='test')
+        self.employee.save()
+
+    def test_get_employees(self):
+        response = self.client.get('/employee/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_employee(self):
+        response = self.client.get(f'/employee/{self.employee.pk}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_edit_employee(self):
+        response = self.client.post(f'/employee/{self.employee.pk}/', HTTP_AUTHORIZATION=self.tokenUser1,
+                                    data={'name': 'test', 'phoneNumber': '09304895880', 'gender': 'M',
+                                          'relationshipStatus': 'S', 'jobSearchStatus': 'A'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_ban_user(self):
+        response = self.client.post(f'/user/{self.user1.pk}/ban', HTTP_AUTHORIZATION=self.tokenUser1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class CompanyTest(APITestCase):
+    def setUp(self):
+        self.tokenAdmin = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': 'ee8ac4bc-6bd1-4d80-956f-f6589ad9e691',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.tokenUser1 = jwt.encode(
+            {'id': 'facf7b2d-4632-4c13-9ac0-75004a07ca16', 'role': 'admin', 'service': config('SERVICE_ID'),
+             'packet_id': 'a5c3f752-bbba-4c4c-ac1f-bbe1b50b0efd', 'username': 'admin',
+             'wallet_id': '123e4567-e89b-12d3-a456-426614174000',
+             'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+            config('AUTH_SECRET_KEY'),
+            algorithm='HS256')
+        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1.save()
+        self.company = Company(profile=self.user1, companyName='test')
+        self.company.save()
+
+    def test_get_companies(self):
+        response = self.client.get('/company/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_company(self):
+        response = self.client.get(f'/company/{self.company.pk}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_edit_employee(self):
+        response = self.client.post(f'/company/{self.company.pk}/', HTTP_AUTHORIZATION=self.tokenUser1,
+                                    data={'companyName': 'test'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)

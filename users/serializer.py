@@ -214,14 +214,14 @@ class ReportSerializer(serializers.ModelSerializer):
 
 
 class CompanySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Company
         fields = '__all__'
+        extra_kwargs = {'profile': {'required': False}}
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Employee
         fields = '__all__'
+        extra_kwargs = {'profile': {'required': False}}

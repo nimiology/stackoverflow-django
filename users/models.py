@@ -271,10 +271,8 @@ class Report(models.Model):
     type = models.CharField(max_length=1, choices=TYPE_CHOICE)
     # The slug is thing's thing you want to report
     slug = models.SlugField()
-    reporter = models.ForeignKey(
-        Wallet, on_delete=models.CASCADE, related_name='report')
-    reason = models.ForeignKey(
-        ReportReason, on_delete=models.CASCADE, related_name='report')
+    reporter = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='report')
+    reason = models.ForeignKey(ReportReason, on_delete=models.CASCADE, related_name='report')
     description = models.TextField(blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
