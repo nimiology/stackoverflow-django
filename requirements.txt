@@ -7,6 +7,7 @@ coreschema==0.0.4
 cryptography==3.4.8
 defusedxml==0.7.1
 Django==3.2.7
+Django>=3.2.10
 django-filter==21.1
 django-templated-mail==1.1.1
 djangorestframework==3.12.4
@@ -32,3 +33,5 @@ social-auth-core==4.1.0
 sqlparse==0.4.2
 uritemplate==4.1.1
 urllib3==1.26.7
+psycopg2
+
