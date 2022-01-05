@@ -2,14 +2,14 @@ import jwt
 from rest_framework.exceptions import ValidationError
 from decouple import config
 
-from users.models import Wallet, Company
+from users.models import UserInfo, Company
 
 
 def FindWallet(id):
     try:
-        p = Wallet.objects.get(id=id)
+        p = UserInfo.objects.get(id=id)
         return p
-    except Wallet.DoesNotExist:
+    except UserInfo.DoesNotExist:
         raise ValidationError('Profile Not Found!')
 
 

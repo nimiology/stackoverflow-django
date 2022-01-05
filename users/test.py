@@ -5,7 +5,7 @@ from decouple import config
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from users.models import Wallet, Industries, Tech, Job, Category, Company, CompanyDocument, Employee, WorkExperience, \
+from users.models import UserInfo, Industries, Tech, Job, Category, Company, CompanyDocument, Employee, WorkExperience, \
     Achievement, EducationalBackground, Notification, ApplyForJob, JobOffer, ReportReason, Report
 
 
@@ -25,9 +25,9 @@ class WalletTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
-        self.user2 = Wallet(id='123e4567-e89b-12d3-a456-426614174100', username='test2')
+        self.user2 = UserInfo(id='123e4567-e89b-12d3-a456-426614174100', username='test2')
         self.user2.save()
 
     def test_get_wallet(self):
@@ -67,7 +67,7 @@ class IndustryTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.industry = Industries(title='test')
         self.industry.save()
@@ -112,7 +112,7 @@ class TechTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.industry = Industries(title='test')
         self.industry.save()
@@ -159,7 +159,7 @@ class JobTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.industry = Industries(title='test')
         self.industry.save()
@@ -206,7 +206,7 @@ class CategoryTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.industry = Industries(title='test')
         self.industry.save()
@@ -253,7 +253,7 @@ class CompanyDocumentTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.company = Company(profile=self.user1, companyName='test')
         self.company.save()
@@ -311,7 +311,7 @@ class WorkExperienceTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.workExperience = WorkExperience(profile=self.user1, title='test', company='company', start='2020-10-10')
         self.workExperience.save()
@@ -356,7 +356,7 @@ class AchievementTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.achievement = Achievement(profile=self.user1, title='test', certificateProvider='company',
                                        date='2020-10-10')
@@ -402,7 +402,7 @@ class EducationalBackgroundTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.employee = Employee(profile=self.user1, name='test')
         self.employee.save()
@@ -457,7 +457,7 @@ class NotificationTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.notification = Notification(profile=self.user1, text='test')
         self.notification.save()
@@ -500,9 +500,9 @@ class ApplyForJobTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
-        self.user2 = Wallet(id='123e4567-e89b-12d3-a456-426614174002', username='test2')
+        self.user2 = UserInfo(id='123e4567-e89b-12d3-a456-426614174002', username='test2')
         self.user2.save()
         self.employee = Employee(profile=self.user1, name='test')
         self.employee.save()
@@ -555,7 +555,7 @@ class JobOfferTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.company = Company(profile=self.user1, companyName='test')
         self.company.save()
@@ -613,7 +613,7 @@ class ReportReasonTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.reportreason = ReportReason(title='test')
         self.reportreason.save()
@@ -657,7 +657,7 @@ class ReportTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.reportreason = ReportReason(title='test')
         self.reportreason.save()
@@ -699,7 +699,7 @@ class EmployeeTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.employee = Employee(profile=self.user1, name='test')
         self.employee.save()
@@ -739,7 +739,7 @@ class CompanyTest(APITestCase):
              'iat': datetime.datetime.now(), 'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.company = Company(profile=self.user1, companyName='test')
         self.company.save()

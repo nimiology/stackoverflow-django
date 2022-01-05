@@ -1,18 +1,8 @@
 from django.db import models
-from django.db.models.signals import (
-    pre_save,
-    m2m_changed,
-)
-from users.models import (
-    Employee,
-    Company,
-    Wallet,
-    Notification,
-)
-from Posts.utils import (
-    PictureAndVideoValidator,
-    slug_genrator, upload_file,
-)
+from django.db.models.signals import pre_save, m2m_changed
+
+from users.models import Employee, Company, UserInfo, Notification
+from Posts.utils import PictureAndVideoValidator, slug_genrator, upload_file
 
 
 class Hashtag(models.Model):
@@ -23,12 +13,12 @@ class Hashtag(models.Model):
 
 
 class Post(models.Model):
-    profile = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='post')
+    profile = models.ForeignKey(UserInfo, on_delete=models.CASCADE, related_name='post')
     slug = models.SlugField(blank=True, max_length=100)
-    tag = models.ManyToManyField(Wallet, blank=True, related_name='tagInPost')
+    tag = models.ManyToManyField(UserInfo, blank=True, related_name='tagInPost')
     description = models.TextField(blank=True)
     hashtag = models.ManyToManyField(Hashtag, blank=True, related_name='post')
-    like = models.ManyToManyField(Wallet, blank=True, related_name='likes')
+    like = models.ManyToManyField(UserInfo, blank=True, related_name='likes')
     date = models.DateTimeField(auto_now_add=True)
     seo = models.JSONField(blank=True, null=True)
 
@@ -37,12 +27,12 @@ class Post(models.Model):
 
 
 class Comment(models.Model):
-    profile = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='comment')
+    profile = models.ForeignKey(UserInfo, on_delete=models.CASCADE, related_name='comment')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comment')
     replyTo = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE, related_name='commentsReply')
     text = models.TextField()
-    tag = models.ManyToManyField(Wallet, blank=True, related_name='commentReply')
-    like = models.ManyToManyField(Wallet, blank=True, related_name='commentLikes')
+    tag = models.ManyToManyField(UserInfo, blank=True, related_name='commentReply')
+    like = models.ManyToManyField(UserInfo, blank=True, related_name='commentLikes')
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

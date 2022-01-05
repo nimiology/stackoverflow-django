@@ -6,21 +6,9 @@ from webemploy import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    # * Authentication
-    path('auth/', include('authentication.urls')),
-
-    # Posts
     path('', include('Posts.urls', )),
-
-    # Question
     path('', include('Questions.urls')),
-
-    # users
     path('', include('users.urls')),
-
-    # Mail
-    path('mail/', include('Mail.urls')),
 
 ]
 if settings.DEBUG:

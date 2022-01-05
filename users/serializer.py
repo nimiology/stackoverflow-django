@@ -125,7 +125,7 @@ class WalletSerializer(serializers.ModelSerializer):
     company = CompanyProfileSerializer(read_only=True)
 
     class Meta:
-        model = Wallet
+        model = UserInfo
         fields = '__all__'
 
 
@@ -153,7 +153,7 @@ class FollowingSerializer(serializers.ModelSerializer):
     following = WalletSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Wallet
+        model = UserInfo
         fields = ['following']
 
 
@@ -193,24 +193,6 @@ class ApplyForJobSerializer(serializers.ModelSerializer):
         self.fields['employee'] = EmployeeProfileSerializer(read_only=True)
         self.fields['company'] = CompanyProfileSerializer(read_only=True)
         return super(ApplyForJobSerializer, self).to_representation(instance)
-
-
-class ReportReasonsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ReportReason
-        fields = '__all__'
-
-
-class ReportSerializer(serializers.ModelSerializer):
-    reporter = WalletSerializer(read_only=True, required=False)
-
-    class Meta:
-        model = Report
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        self.fields['reason'] = ReportReasonsSerializer(read_only=True)
-        return super(ReportSerializer, self).to_representation(instance)
 
 
 class CompanySerializer(serializers.ModelSerializer):

@@ -1,7 +1,12 @@
+from django.conf.urls import url
+
 from users.views import *
-from django.urls import path
+from django.urls import path, include
 
 urlpatterns = [
+    url('auth/', include('djoser.urls')),
+    url('auth/', include('djoser.urls.jwt')),
+
     path('wallet/<pk>', WalletAPI.as_view()),
     path('follow/<slug>', FollowAPI.as_view()),
     path('user/<slug>/following', FollowingAPI.as_view()),
@@ -26,8 +31,6 @@ urlpatterns = [
     path('companydocument', CompanyDocumentAPI.as_view()),
     path('companydocument/<int:pk>', CompanyDocumentAPI.as_view()),
     path('company/<slug>/companydocument', CompanyDocuments.as_view()),
-    path('company/<slug>/accept', VerifyCompany.as_view()),
-    path('company/<slug>/reject', VerifyCompany.as_view()),
 
     path('educationalbackground', EducationalBackgroundAPI.as_view()),
     path('educationalbackground/<int:pk>', EducationalBackgroundAPI.as_view()),
@@ -56,20 +59,9 @@ urlpatterns = [
     path('company/<slug>/joboffers', GetAllProfileJobOffer.as_view()),
     path('joboffers', SearchJobOffers.as_view()),
 
-    path('reportreason', ReportReasonAPI.as_view()),
-    path('reportreason/<int:pk>', ReportReasonAPI.as_view()),
-    path('reportreasons', AllReportReasonsAPI.as_view()),
-
-    path('report', ReportAPI.as_view()),
-    path('reports', ReportsAPI.as_view()),
-    path('report/<int:pk>', ReportAPI.as_view()),
-
-    path('user/<slug>/ban', BanProfileAPI.as_view()),
 
     path('company/', CompanyAll.as_view()),
-    path('company/<int:pk>/', CompanyRU.as_view()),
     path('employee/', EmployeeAll.as_view()),
-    path('employee/<int:pk>/', EmployeeRU.as_view()),
 
 
 ]

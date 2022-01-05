@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from Posts.models import Post, Comment, Hashtag, Media
-from users.models import Wallet
+from users.models import UserInfo
 
 
 class PostTest(APITestCase):
@@ -26,7 +26,7 @@ class PostTest(APITestCase):
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
 
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.post = Post(profile=self.user1)
         self.post.save()
@@ -74,7 +74,7 @@ class CommentTest(APITestCase):
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
 
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.post = Post(profile=self.user1)
         self.post.save()
@@ -120,7 +120,7 @@ class HashtagTest(APITestCase):
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
 
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.hashtag = Hashtag(title='test')
         self.hashtag.save()
@@ -162,7 +162,7 @@ class MediaTest(APITestCase):
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
 
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.post = Post(profile=self.user1)
         self.post.save()

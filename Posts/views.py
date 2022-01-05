@@ -1,14 +1,6 @@
 from rest_framework import status
-from rest_framework.generics import (
-    GenericAPIView,
-    ListAPIView,
-    get_object_or_404,
-)
-from rest_framework.mixins import (
-    CreateModelMixin,
-    RetrieveModelMixin,
-    DestroyModelMixin, UpdateModelMixin,
-)
+from rest_framework.generics import GenericAPIView,ListAPIView,get_object_or_404
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
@@ -19,7 +11,7 @@ from Posts.permission import IsItOwner, IsItPostOwner, IsAdmin, IsRequestMethodP
 from users.utils import GetWallet
 from rest_framework.exceptions import ValidationError
 from Posts.utils import StandardResultsSetPagination
-from users.models import Wallet
+from users.models import UserInfo
 
 
 class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
@@ -64,7 +56,7 @@ class UserPostsAPI(ListAPIView):
     def get_queryset(self):
         """Get all User's Post"""
         username = self.kwargs['slug']
-        owner = Wallet.objects.get(username=username)
+        owner = UserInfo.objects.get(username=username)
         qs = owner.post.all()
         return qs
 

@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from Questions.models import Question, Answer
-from users.models import Wallet
+from users.models import UserInfo
 
 
 class QuestionTest(APITestCase):
@@ -26,7 +26,7 @@ class QuestionTest(APITestCase):
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
 
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.question = Question(profile=self.user1, title='test', text='asdf')
         self.question.save()
@@ -84,7 +84,7 @@ class AnswerTest(APITestCase):
             config('AUTH_SECRET_KEY'),
             algorithm='HS256')
 
-        self.user1 = Wallet(id='123e4567-e89b-12d3-a456-426614174000', username='test')
+        self.user1 = UserInfo(id='123e4567-e89b-12d3-a456-426614174000', username='test')
         self.user1.save()
         self.question = Question(profile=self.user1, title='test', text='asdf')
         self.question.save()

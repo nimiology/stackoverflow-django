@@ -1,17 +1,12 @@
 from django.db.models import Q
 from django.http import Http404
 from rest_framework import status
-from rest_framework.exceptions import NotFound
 from rest_framework.generics import GenericAPIView, ListAPIView, get_object_or_404
-from rest_framework.mixins import (CreateModelMixin,
-                                   RetrieveModelMixin,
-                                   DestroyModelMixin,
-                                   UpdateModelMixin)
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Posts.permission import IsAdmin, IsItOwner
-from authentication.permission import OwnerOrReadOnly
 from users.permission import IsItOwnerCompany
 from users.serializer import *
 from users.utils import GetWallet, FindWallet, GetCompany
@@ -19,7 +14,7 @@ from users.utils import GetWallet, FindWallet, GetCompany
 
 class WalletAPI(GenericAPIView, RetrieveModelMixin, DestroyModelMixin):
     serializer_class = WalletSerializer
-    queryset = Wallet.objects.all()
+    queryset = UserInfo.objects.all()
 
     def get(self, request, *args, **kwargs):
         """Get Wallet"""
@@ -50,7 +45,6 @@ class FollowAPI(APIView):
 
 class FollowingAPI(ListAPIView):
     serializer_class = WalletSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get User Following"""
@@ -62,7 +56,6 @@ class FollowingAPI(ListAPIView):
 
 class FollowersAPI(ListAPIView):
     serializer_class = WalletSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get User Following"""
@@ -84,11 +77,12 @@ class IndustriesAPI(GenericAPIView, CreateModelMixin,
 
     def post(self, request, *args, **kwargs):
         """Create Industry"""
+        self.permission_classes = [IsAdmin]
+        self.check_permissions(self.request)
         return self.create(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         """Edit Industry By Admin"""
-        self.serializer_class = VerifyIndustriesSerializer
         self.permission_classes = [IsAdmin]
         self.check_permissions(self.request)
         return self.update(request, *args, **kwargs)
@@ -101,13 +95,12 @@ class IndustriesAPI(GenericAPIView, CreateModelMixin,
 
     def perform_create(self, serializer):
         GetWallet(self.request)
-        return serializer.save(status='w')
+        return serializer.save()
 
 
 class GetAllIndustriesAPI(ListAPIView):
     """Get All Industries"""
     serializer_class = IndustriesSerializer
-    pagination_class = StandardResultsSetPagination
     # search fields
     filterset_fields = ['title', 'status']
     queryset = Industries.objects.all()
@@ -148,8 +141,6 @@ class CategoryAPI(GenericAPIView, CreateModelMixin,
 class GetAllCategoryAPI(ListAPIView):
     """Get All Categories"""
     serializer_class = CategorySerializer
-    pagination_class = StandardResultsSetPagination
-    # search fields
     filterset_fields = ['title', 'industry__title', 'upperCategory__title', 'status']
     queryset = Category.objects.all()
 
@@ -188,8 +179,6 @@ class TechAPI(GenericAPIView, CreateModelMixin,
 class GetAllTechAPI(ListAPIView):
     """Get All Techs"""
     serializer_class = TechSerializer
-    pagination_class = StandardResultsSetPagination
-    # Search Fields
     filterset_fields = ['title', 'industry__title']
     queryset = Tech.objects.all()
 
@@ -228,8 +217,6 @@ class JobAPI(GenericAPIView, CreateModelMixin,
 class GetAllJobAPI(ListAPIView):
     """Get All Jobs"""
     serializer_class = JobSerializer
-    pagination_class = StandardResultsSetPagination
-    # Search Fields
     filterset_fields = ['title', 'industry__title']
     queryset = Job.objects.all()
 
@@ -300,7 +287,6 @@ class CompanyDocumentAPI(GenericAPIView, CreateModelMixin,
 
 class CompanyDocuments(ListAPIView):
     serializer_class = CompanyDocumentSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get Company's Document"""
@@ -308,26 +294,6 @@ class CompanyDocuments(ListAPIView):
         company = get_object_or_404(Company, profile__username=username)
         companyDocuments = company.companyDocument.all()
         return companyDocuments
-
-
-class VerifyCompany(APIView):
-    permission_classes = [IsAdmin]
-
-    def post(self, request, *args, **kwargs):
-        """Verify Company"""
-        company = get_object_or_404(Company, profile__username=kwargs['slug'])
-        serializer = CompanyProfileSerializer(company)
-        if 'accept' in request.get_full_path():
-            company.status = 'a'
-        elif 'reject' in request.get_full_path():
-            company.status = 'r'
-        else:
-            raise Http404
-        company.save()
-        data = serializer.data
-        statusResponse = status.HTTP_200_OK
-
-        return Response(data=data, status=statusResponse)
 
 
 class EducationalBackgroundAPI(GenericAPIView, CreateModelMixin,
@@ -386,7 +352,6 @@ class EducationalBackgroundAPI(GenericAPIView, CreateModelMixin,
 
 class ProfileEducationalBackground(ListAPIView):
     serializer_class = EducationalBackgroundSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get profile's EducationalBackground"""
@@ -437,7 +402,6 @@ class WorkExperienceAPI(GenericAPIView, CreateModelMixin,
 
 class ProfileWorkExperience(ListAPIView):
     serializer_class = WorkExperienceSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get profile's WorkExperience"""
@@ -486,7 +450,6 @@ class AchievementAPI(GenericAPIView, CreateModelMixin,
 
 class ProfileAchievement(ListAPIView):
     serializer_class = AchievementSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get profile's Achievment"""
@@ -520,7 +483,6 @@ class NotificationMarkAsRead(APIView):
 
 class UserNotification(ListAPIView):
     serializer_class = NotificationSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get User's Notifications"""
@@ -577,7 +539,6 @@ class ApplyForJobAPI(GenericAPIView, CreateModelMixin,
 
 class AllAppliesForJob(ListAPIView):
     serializer_class = ApplyForJobSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get profile's Job Offer"""
@@ -626,42 +587,6 @@ class VerifyApplyForJobAPI(APIView):
         return Response(data=data, status=statusResponse)
 
 
-class ReportReasonAPI(GenericAPIView, CreateModelMixin,
-                      RetrieveModelMixin, DestroyModelMixin,
-                      UpdateModelMixin):
-    serializer_class = ReportReasonsSerializer
-    queryset = ReportReason.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        """Get Report Reason By Admin"""
-        return self.retrieve(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        """Create Report Reason By Admin"""
-        self.permission_classes = [IsAdmin]
-        self.check_permissions(request)
-        return self.create(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        """Edit Report Reason By Admin"""
-        self.permission_classes = [IsAdmin]
-        self.check_permissions(request)
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        """Delete Report Reason By Admin"""
-        self.permission_classes = [IsAdmin]
-        self.check_permissions(request)
-        return self.destroy(request, *args, **kwargs)
-
-
-class AllReportReasonsAPI(ListAPIView):
-    """Get All Report Reason"""
-    serializer_class = ReportReasonsSerializer
-    queryset = ReportReason.objects.all()
-    pagination_class = StandardResultsSetPagination
-
-
 class JobOfferAPI(GenericAPIView, CreateModelMixin,
                   RetrieveModelMixin, DestroyModelMixin,
                   UpdateModelMixin):
@@ -704,109 +629,26 @@ class JobOfferAPI(GenericAPIView, CreateModelMixin,
 
 class GetAllProfileJobOffer(ListAPIView):
     serializer_class = JobOfferSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """get profile job offer"""
         return JobOffer.objects.filter(company__profile__username=self.kwargs['slug'])
 
 
-class ReportAPI(GenericAPIView, CreateModelMixin,
-                RetrieveModelMixin, DestroyModelMixin):
-    serializer_class = ReportSerializer
-    queryset = Report.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        """Get Report Reason By Admin"""
-        self.permission_classes = [IsAdmin]
-        self.check_permissions(request)
-        return self.retrieve(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        """Create Report Reason By Admin"""
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        """Delete Report Reason By Admin"""
-        self.permission_classes = [IsAdmin]
-        self.check_permissions(request)
-        return self.destroy(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        if serializer.validated_data.get('type') in ('p', 'c', 'q', 'a', 'w'):
-            return serializer.save(reporter=GetWallet(self.request))
-        else:
-            raise ValidationError('the type is wrong')
-
-
-class ReportsAPI(ListAPIView):
-    """Get All Reports"""
-    serializer_class = ReportSerializer
-    pagination_class = StandardResultsSetPagination
-    # Search Fields
-    permission_classes = [IsAdmin]
-    filterset_fields = ['type', 'slug']
-    queryset = Report.objects.all()
-
-
 class SearchJobOffers(ListAPIView):
     serializer_class = JobOfferSerializer
     queryset = JobOffer.objects.all().order_by('-id')
-    pagination_class = StandardResultsSetPagination
-    """Search Fields"""
     filterset_fields = ['title', 'job', 'tech', 'category', 'count', 'jobType', 'text']
 
 
 class CompanyAll(ListAPIView):
     serializer_class = CompanyProfileSerializer
     queryset = Company.objects.all().order_by('-id')
-    pagination_class = StandardResultsSetPagination
     filterset_fields = ['companyName', 'about', 'foundedIn', 'employeeCount', 'industries', 'category', 'needEmployee']
-
-
-class CompanyRU(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
-    serializer_class = CompanySerializer
-    permission_classes = [OwnerOrReadOnly]
-    queryset = Company.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-    def perform_update(self, serializer):
-        return serializer.save(profile=self.get_object().profile)
 
 
 class EmployeeAll(ListAPIView):
     serializer_class = EmployeeSerializer
-    pagination_class = StandardResultsSetPagination
     filterset_fields = ['gender', 'category', 'industries',
                         'relationshipStatus', 'jobSearchStatus']
     queryset = Employee.objects.all()
-
-
-class EmployeeRU(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
-    serializer_class = EmployeeSerializer
-    permission_classes = [OwnerOrReadOnly]
-    queryset = Employee.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-    def perform_update(self, serializer):
-        return serializer.save(profile=self.get_object().profile)
-
-class BanProfileAPI(APIView):
-    permission_classes = [IsAdmin]
-
-    def post(self, request, *args, **kwargs):
-        """Ban a profile by admin"""
-        wallet_id = kwargs['slug']
-        wallet = FindWallet(wallet_id)
-        wallet.ban = not wallet.ban
-        wallet.save()
-        serializer = WalletSerializer(wallet)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)

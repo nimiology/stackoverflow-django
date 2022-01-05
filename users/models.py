@@ -1,48 +1,33 @@
 import datetime
 
+from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import pre_save
 
 from Posts.utils import *
 
 
-class Wallet(models.Model):
-    id = models.CharField(max_length=40, primary_key=True)
+class UserInfo(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userInfo')
     username = models.CharField(max_length=100, unique=True)
-    following = models.ManyToManyField('Wallet', blank=True, related_name='followers')
-    ban = models.BooleanField(default=False)
+    following = models.ManyToManyField('self', blank=True, related_name='followers')
 
     def __str__(self):
-        return self.id
+        return self.user.username
 
 
 class Industries(models.Model):
-    STATUS_CHOICES = [
-        ('a', 'accepted'),
-        ('w', "waiting"),
-        ('r', 'rejected'),
-    ]
-
     title = models.CharField(max_length=1024, unique=True)
-    status = models.CharField(choices=STATUS_CHOICES, default='w', max_length=1)
 
     def __str__(self):
         return self.title
 
 
 class Category(models.Model):
-    STATUS_CHOICES = [
-        ('a', 'accepted'),
-        ('w', "waiting"),
-        ('r', 'rejected'),
-    ]
-
     industry = models.ForeignKey(Industries, null=True, on_delete=models.CASCADE, related_name='category')
     title = models.CharField(max_length=500, unique=True)
-    upperCategory = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True,
-                                      related_name='reverseCategory')
+    upperCategory = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name='reverseCategory')
     description = models.TextField(blank=True)
-    status = models.CharField(choices=STATUS_CHOICES, default='w', max_length=1)
 
     def __str__(self):
         return self.title
@@ -67,13 +52,7 @@ class Job(models.Model):
 class Company(models.Model):
     relatedName = 'company'
 
-    STATUS_CHOICES = [
-        ('a', 'accepted'),
-        ('w', "waiting"),
-        ('r', 'rejected'),
-    ]
-
-    profile = models.OneToOneField("Wallet", on_delete=models.CASCADE, related_name=relatedName)
+    profile = models.OneToOneField(UserInfo, on_delete=models.CASCADE, related_name=relatedName)
     profilePic = models.ImageField(upload_to=upload_profilePic, blank=True)
     companyName = models.CharField(max_length=2048)
     about = models.TextField(blank=True)
@@ -85,11 +64,9 @@ class Company(models.Model):
     industries = models.ManyToManyField(Industries, blank=True, related_name=relatedName)
     employeeCount = models.CharField(max_length=1024, blank=True)
     needEmployee = models.BooleanField(blank=True, null=True)
-    status = models.CharField(choices=STATUS_CHOICES,
-                              default='w', max_length=1)
 
     def __str__(self):
-        return self.profile.pk
+        return self.profile
 
 
 class CompanyDocument(models.Model):
@@ -142,7 +119,7 @@ class Employee(models.Model):
         ('M', 'Married')
     )
 
-    profile = models.OneToOneField(Wallet, on_delete=models.CASCADE, related_name=relatedName)
+    profile = models.OneToOneField(UserInfo, on_delete=models.CASCADE, related_name=relatedName)
     name = models.CharField(max_length=1024)
     profilePic = models.ImageField(upload_to=upload_profilePic, blank=True)
     category = models.ManyToManyField(Category, blank=True, related_name=relatedName)
@@ -155,14 +132,11 @@ class Employee(models.Model):
     jobSearchStatus = models.CharField(max_length=1, choices=JOB_SEARCH_STATUS_CHOICES)
     minimumAnnualSalary = models.PositiveIntegerField(blank=True, null=True)
     techWantsToWorkWith = models.ManyToManyField(Tech, blank=True, related_name='employeeProfileTechWantsToWorkWith')
-    techWantsToNotWorkWith = models.ManyToManyField(Tech, blank=True,
-                                                    related_name='employeeProfileTechWantsToNotWorkWith')
+    techWantsToNotWorkWith = models.ManyToManyField(Tech, blank=True, related_name='employeeProfileTechWantsToNotWorkWith')
     role = models.ManyToManyField(Job, blank=True, related_name=relatedName)
     industries = models.ManyToManyField(Industries, blank=True, related_name='employeeProfileIndustries')
-    industriesToExclude = models.ManyToManyField(Industries, blank=True,
-                                                 related_name='employeeProfileIndustriesToExclude')
-    jobType = models.CharField(
-        max_length=1, choices=JOB_TYPE_CHOICES, blank=True)
+    industriesToExclude = models.ManyToManyField(Industries, blank=True, related_name='employeeProfileIndustriesToExclude')
+    jobType = models.CharField(max_length=1, choices=JOB_TYPE_CHOICES, blank=True)
     hire = models.BooleanField(blank=True, null=True)
 
     def __str__(self):
@@ -172,7 +146,7 @@ class Employee(models.Model):
 class WorkExperience(models.Model):
     relatedName = 'workExperience'
 
-    profile = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name=relatedName)
+    profile = models.ForeignKey(UserInfo, on_delete=models.CASCADE, related_name=relatedName)
     title = models.CharField(max_length=1024)
     company = models.CharField(max_length=1024)
     start = models.DateField()
@@ -203,7 +177,7 @@ class EducationalBackground(models.Model):
 class Achievement(models.Model):
     relatedName = 'achievement'
 
-    profile = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name=relatedName)
+    profile = models.ForeignKey(UserInfo, on_delete=models.CASCADE, related_name=relatedName)
     title = models.CharField(max_length=1024)
     certificateProvider = models.CharField(max_length=1024)
     date = models.DateField()
@@ -215,7 +189,7 @@ class Achievement(models.Model):
 
 
 class Notification(models.Model):
-    profile = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='notification')
+    profile = models.ForeignKey(UserInfo, on_delete=models.CASCADE, related_name='notification')
     text = models.TextField()
     slug = models.SlugField(blank=True)
     date = models.DateTimeField(auto_now_add=True)
@@ -251,56 +225,18 @@ class ApplyForJob(models.Model):
         return f'{self.employee}-{self.company}'
 
 
-class ReportReason(models.Model):
-    title = models.CharField(max_length=2048)
-    description = models.TextField(blank=True)
-
-    def __str__(self):
-        return self.title
-
-
-class Report(models.Model):
-    TYPE_CHOICE = (
-        ('p', 'post'),
-        ('c', 'comment'),
-        ('q', 'question'),
-        ('a', 'answer'),
-        ('w', 'wallet')
-    )
-
-    type = models.CharField(max_length=1, choices=TYPE_CHOICE)
-    # The slug is thing's thing you want to report
-    slug = models.SlugField()
-    reporter = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='report')
-    reason = models.ForeignKey(ReportReason, on_delete=models.CASCADE, related_name='report')
-    description = models.TextField(blank=True)
-    date = models.DateTimeField(auto_now_add=True)
-
-
-def EmployeePreSave(sender, instance, *args, **kwargs):
-    if instance.profilePic == '':
-        instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
-
-
-def CompanyPreSave(sender, instance, *args, **kwargs):
-    if instance.profilePic == '':
-        instance.profilePic = f'profiles/Default/{random.randint(1, 10)}.jpeg'
-
-
 def ApplyForJobPreSave(sender, instance, *args, **kwargs):
     if instance.sender == 'e':
-        Notif = Notification(profile=instance.company.profile,
+        notification = Notification(profile=instance.company.profile,
                              text=f'{instance.employee.name} sent you request',
                              slug='a')
     else:
-        Notif = Notification(profile=instance.employee.profile,
+        notification = Notification(profile=instance.employee.profile,
                              text=f'{instance.company.companyName} sent you request',
                              slug='')
-    Notif.save()
+    notification.save()
     if instance.non_cooperation:
         instance.nonCooperationDate = datetime.datetime.now().date()
 
 
 pre_save.connect(ApplyForJobPreSave, ApplyForJob)
-pre_save.connect(EmployeePreSave, Employee)
-pre_save.connect(CompanyPreSave, Company)
