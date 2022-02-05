@@ -1,9 +1,5 @@
 from django.contrib import admin
-from Posts.models import (
-    Post,
-    Comment,
-    Hashtag, Media,
-)
+from Posts.models import Post, Comment, Hashtag
 
 
 class PostAdmin(admin.ModelAdmin):
@@ -19,4 +15,3 @@ class CommentsAdmin(admin.ModelAdmin):
 admin.site.register(Post, PostAdmin)
 admin.site.register(Comment, CommentsAdmin)
 admin.site.register(Hashtag)
-admin.site.register(Media)

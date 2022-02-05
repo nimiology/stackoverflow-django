@@ -18,7 +18,4 @@ urlpatterns = [
     path('hashtag/<pk>', HashtagAPI.as_view()),
     path('hashtag/<id>/posts', HashtagPostAPI.as_view()),
     path('hashtags', AllHashtagsAPI.as_view()),
-
-    path('media', MediaAPI.as_view()),
-    path('media/<int:pk>', MediaAPI.as_view()),
 ]

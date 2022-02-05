@@ -1,47 +1,41 @@
 from rest_framework import status
-from rest_framework.generics import GenericAPIView,ListAPIView,get_object_or_404
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
+from rest_framework.generics import ListAPIView, get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, DestroyAPIView
 
 from Posts.serializer import *
-from Posts.permission import IsItOwner, IsItPostOwner, IsAdmin, IsRequestMethodPost, DeleteObjectByAdminOrOwner, \
-    IsAuthenticate, MediaOwner
-from users.utils import GetWallet
+from Posts.permission import IsItOwner
 from rest_framework.exceptions import ValidationError
-from Posts.utils import StandardResultsSetPagination
+from Posts.utils import CreateRetrieveUpdateDestroyAPIView
 from users.models import UserInfo
 
 
-class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
+class PostAPI(CreateRetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
     lookup_field = 'slug'
 
-    def get(self, request, *args, **kwargs):
-        """Get Post"""
-        return self.retrieve(request, *args, **kwargs)
+    def put(self, request, *args, **kwargs):
+        self.permission_classes = [IsItOwner]
+        return self.update(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        """Create Post"""
-        return self.create(request, *args, **kwargs)
+    def patch(self, request, *args, **kwargs):
+        self.permission_classes = [IsItOwner]
+        return self.partial_update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         """Delete Post"""
-        self.permission_classes = [DeleteObjectByAdminOrOwner]
+        self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        wallet = GetWallet(self.request)
-        """Is there any pic or description?"""
-        if 'description' in self.request.data:
-            if self.request.data['description'] == '':
-                raise ValidationError('You should give me one of description')
-            else:
-                return serializer.save(profile=wallet)
-        else:
-            raise ValidationError('You should give me one of description')
+        user = self.request.user
+        return serializer.save(profile=user)
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        return serializer.save(profile=user)
 
     def perform_destroy(self, instance):
         """Is he him?"""
@@ -51,7 +45,6 @@ class PostAPI(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericAP
 
 class UserPostsAPI(ListAPIView):
     serializer_class = PostSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get all User's Post"""
@@ -63,12 +56,11 @@ class UserPostsAPI(ListAPIView):
 
 class SeePosts(ListAPIView):
     serializer_class = PostSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get Posts"""
-        profile = GetWallet(self.request)
-        posts = Post.objects.order_by('-date').filter(profile__in=profile.following.all())
+        profile = self.request.user
+        posts = Post.objects.filter(profile__in=profile.userInfo.following.all()).order_by('-date')
         return posts
 
 
@@ -76,7 +68,7 @@ class Like(APIView):
     def post(self, request, *args, **kwargs):
         """Like"""
         slug = kwargs['slug']
-        profile = GetWallet(request)
+        profile = request.user
         post = get_object_or_404(Post, slug=slug)
         if not profile in post.like.all():
             post.like.add(profile)
@@ -86,33 +78,24 @@ class Like(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class CommentAPI(CreateModelMixin, RetrieveModelMixin,
-                 DestroyModelMixin, GenericAPIView):
+class CommentAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        """Get Comment"""
-        return self.retrieve(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        """Create Comment"""
-        return self.create(request, *args, **kwargs)
-
     def delete(self, request, *args, **kwargs):
         """Delete Comment"""
-        self.permission_classes = [IsItPostOwner | DeleteObjectByAdminOrOwner | IsItOwner]
+        self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        wallet = GetWallet(self.request)
+        user = self.request.user
         post = get_object_or_404(Post, slug=self.kwargs['slug'])
         if 'replyToComment' in self.request.data:
             replyTOComment = get_object_or_404(Comment, id=self.request.data['replyToComment'])
             replyToCommentPost = replyTOComment.post.id
             if replyToCommentPost != post:
                 raise ValidationError("Upper comment didn't found")
-        return serializer.save(profile=wallet, post=post)
+        return serializer.save(profile=user, post=post)
 
     def perform_destroy(self, instance):
         """Is he him?"""
@@ -124,7 +107,7 @@ class CommentLike(APIView):
     def post(self, request, *args, **kwargs):
         """Like"""
         id = kwargs['pk']
-        profile = GetWallet(request)
+        profile = request.user
         comment = get_object_or_404(Comment, id=id)
         if not profile in comment.like.all():
             comment.like.add(profile)
@@ -136,7 +119,6 @@ class CommentLike(APIView):
 
 class PostCommentsAPI(ListAPIView):
     serializer_class = CommentSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Get Post's Comments"""
@@ -146,24 +128,13 @@ class PostCommentsAPI(ListAPIView):
         return qs
 
 
-class HashtagAPI(GenericAPIView, CreateModelMixin, DestroyModelMixin):
+class HashtagAPI(CreateAPIView, RetrieveAPIView):
     serializer_class = HashtagSerializer
     queryset = Hashtag.objects.all()
-
-    def post(self, request, *args, **kwargs):
-        """Create Hashtag"""
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        """Delete Hashtag By Admin"""
-        self.permission_classes = [IsAdmin]
-        self.check_permissions(self.request)
-        return self.destroy(request, *args, **kwargs)
 
 
 class AllHashtagsAPI(ListAPIView):
     serializer_class = HashtagSerializer
-    pagination_class = StandardResultsSetPagination
     queryset = Hashtag.objects.all()
     """Search Fields"""
     filterset_fields = ['title']
@@ -171,54 +142,6 @@ class AllHashtagsAPI(ListAPIView):
 
 class HashtagPostAPI(ListAPIView):
     serializer_class = PostSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Get Hashtag's Post"""
-        hashtag = get_object_or_404(Hashtag, pk=self.kwargs['id'])
-        qs = hashtag.post.all()
-        return qs
-
-
-class MediaAPI(GenericAPIView, CreateModelMixin, DestroyModelMixin, UpdateModelMixin, RetrieveModelMixin):
-    serializer_class = MediaSerializer
-    queryset = Media.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        self.permission_classes = [IsAuthenticate, MediaOwner]
-        return self.update(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        self.permission_classes = [IsAuthenticate, MediaOwner]
-        return self.create(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        self.permission_classes = [IsAuthenticate, MediaOwner]
-        return self.destroy(request, *args, **kwargs)
-
-    def perform_update(self, serializer):
-        self.check_object_permissions(self.request, self.get_object())
-        return serializer.save()
-
-    def perform_create(self, serializer):
-        post = serializer.validated_data.get('post')
-        question = serializer.validated_data.get('question')
-        answer = serializer.validated_data.get('answer')
-        user = GetWallet(self.request)
-        if post:
-            if post.profile == user:
-                return serializer.save()
-        elif question:
-            if question.profile == user:
-                return serializer.save()
-        elif answer:
-            if answer.profile == user:
-                return serializer.save()
-        raise PermissionDenied
-
-    def perform_destroy(self, instance):
-        self.check_object_permissions(self.request, instance)
-        return instance.delete()
+        return get_object_or_404(Hashtag, pk=self.kwargs['id']).post.all()

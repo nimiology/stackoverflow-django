@@ -9,7 +9,6 @@ from Posts.utils import *
 
 class UserInfo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userInfo')
-    username = models.CharField(max_length=100, unique=True)
     following = models.ManyToManyField('self', blank=True, related_name='followers')
 
     def __str__(self):

@@ -1,12 +1,12 @@
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError
 
-from users.utils import GetWallet, GetCompany
+from users.utils import GetCompany
 
 
 class IsItOwnerCompany(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        profile = GetWallet(request)
+        profile = request.user
         """Get Company"""
         company = GetCompany(profile)
         if obj.company == company:

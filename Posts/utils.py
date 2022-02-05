@@ -3,13 +3,7 @@ import random
 import string
 
 from rest_framework.exceptions import ValidationError
-from rest_framework.pagination import PageNumberPagination
-
-
-class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 25
-    page_size_query_param = 'page_size'
-    max_page_size = 250
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView
 
 
 def get_filename_ext(filepath):
@@ -45,16 +39,11 @@ def upload_image_Answer(instance, filename):
     return f"Question/{instance.question.slug}/Answer/{final_name}"
 
 
-def slug_genrator(cls):
+def slug_generator():
     letters_str = string.ascii_letters + string.digits
     letters = list(letters_str)
-    while True:
-        SLUG = "".join(random.choice(letters) for _ in range(40))
-        qs = cls.objects.filter(slug=SLUG)
-        if not qs.exists():
-            break
-
-    return SLUG
+    slug = "".join(random.choice(letters) for _ in range(50))
+    return slug
 
 
 def upload_profilePic(instance, filename):
@@ -71,3 +60,6 @@ def upload_companyDocument(instance, filename):
     final_name = f"{randomSTR}{ext}"
     return f"profiles/{instance.company.profile.id}/{final_name}"
 
+
+class CreateRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView, CreateAPIView):
+    pass
