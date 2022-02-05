@@ -2,47 +2,31 @@ import django_filters
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView, ListAPIView, get_object_or_404
-from rest_framework.mixins import (CreateModelMixin,
-                                   RetrieveModelMixin,
-                                   DestroyModelMixin,
-                                   UpdateModelMixin)
+from rest_framework.generics import ListAPIView, get_object_or_404
 
-from Posts.utils import StandardResultsSetPagination
+from Posts.utils import CreateRetrieveUpdateDestroyAPIView
 from Questions.models import Question, Answer
 from Questions.serializer import QuestionSerializer, AnswerSerializer
-from Posts.permission import IsItOwner, IsAdmin, DeleteObjectByAdminOrOwner
-from users.utils import GetWallet
+from Posts.permission import IsItOwner
 
 
-class QuestionAPI(GenericAPIView, CreateModelMixin,
-                  RetrieveModelMixin, DestroyModelMixin,
-                  UpdateModelMixin):
+class QuestionAPI(CreateRetrieveUpdateDestroyAPIView):
     serializer_class = QuestionSerializer
     queryset = Question.objects.all()
     lookup_field = 'slug'
-    permission_classes = []
-
-    def get(self, request, *args, **kwargs):
-        """Get Question"""
-        return self.retrieve(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        """Create Question"""
-        return self.create(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
-        """Edit Question"""
+        # Edit Question
         self.permission_classes = [IsItOwner]
         return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        """Delete Question"""
-        self.permission_classes = [DeleteObjectByAdminOrOwner]
+        # Delete Question
+        self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        profile = GetWallet(self.request)
+        profile = self.request.user
         return serializer.save(profile=profile)
 
     def perform_update(self, serializer):
@@ -57,7 +41,6 @@ class QuestionAPI(GenericAPIView, CreateModelMixin,
 
 class AllUserQuestionsAPI(ListAPIView):
     serializer_class = QuestionSerializer
-    pagination_class = StandardResultsSetPagination
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['title', 'text']
 
@@ -69,9 +52,9 @@ class AllUserQuestionsAPI(ListAPIView):
 
 class QuestionUpVote(APIView):
     def post(self, request, *args, **kwargs):
-        """upvote question"""
+        # upvote question"""
         slug = kwargs['slug']
-        profile = GetWallet(request)
+        profile = request.user
         question = get_object_or_404(Question, slug=slug)
         if not profile in question.upVote.all():
             if profile in question.downVote.all():
@@ -85,9 +68,9 @@ class QuestionUpVote(APIView):
 
 class QuestionDownVote(APIView):
     def post(self, request, *args, **kwargs):
-        """downvote question"""
+        # downvote question
         slug = kwargs['slug']
-        profile = GetWallet(request)
+        profile = request.user
         question = get_object_or_404(Question, slug=slug)
         if not profile in question.downVote.all():
             if profile in question.upVote.all():
@@ -99,32 +82,22 @@ class QuestionDownVote(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class AnswerAPI(GenericAPIView, CreateModelMixin,
-                RetrieveModelMixin, DestroyModelMixin,
-                UpdateModelMixin):
+class AnswerAPI(CreateRetrieveUpdateDestroyAPIView):
     serializer_class = AnswerSerializer
     queryset = Answer.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        """Get Answer"""
-        return self.retrieve(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        """Create Answer"""
-        return self.create(request, *args, **kwargs)
-
     def put(self, request, *args, **kwargs):
-        """Edit Answer"""
+        # Edit Answer
         self.permission_classes = [IsItOwner]
         return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        """Delete Answer"""
-        self.permission_classes = [DeleteObjectByAdminOrOwner]
+        # Delete Answer
+        self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        profile = GetWallet(self.request)
+        profile = self.request.user
         slug = self.kwargs['slug']
         question = get_object_or_404(Question, slug=slug)
         return serializer.save(profile=profile, question=question)
@@ -143,7 +116,7 @@ class QuestionAnswers(ListAPIView):
     serializer_class = AnswerSerializer
 
     def get_queryset(self):
-        """Get QuestionAnswer"""
+        # Get QuestionAnswer
         question = get_object_or_404(Question, slug=self.kwargs['slug'])
         qs = question.answer.all()
         return qs
@@ -151,9 +124,9 @@ class QuestionAnswers(ListAPIView):
 
 class AnswerUpVote(APIView):
     def post(self, request, *args, **kwargs):
-        """upvote Answer"""
+        # upvote Answer
         id = kwargs['pk']
-        profile = GetWallet(request)
+        profile = request.user
         answer = get_object_or_404(Answer, id=id)
         if not profile in answer.upVote.all():
             if profile in answer.downVote.all():
@@ -167,9 +140,9 @@ class AnswerUpVote(APIView):
 
 class AnswerDownVote(APIView):
     def post(self, request, *args, **kwargs):
-        """downvote Answer"""
+        # downvote Answer
         id = kwargs['pk']
-        profile = GetWallet(request)
+        profile = request.user
         answer = get_object_or_404(Answer, id=id)
         if not profile in answer.downVote.all():
             if profile in answer.upVote.all():
@@ -183,7 +156,5 @@ class AnswerDownVote(APIView):
 
 class SearchQuestions(ListAPIView):
     serializer_class = QuestionSerializer
-    pagination_class = StandardResultsSetPagination
     queryset = Question.objects.all().order_by('-date')
-    """Search Fields"""
     filterset_fields = ['title', 'text', 'category', 'tech']

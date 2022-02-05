@@ -25,7 +25,7 @@ class PostAPI(CreateRetrieveUpdateDestroyAPIView):
         return self.partial_update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        """Delete Post"""
+        # Delete Post
         self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
@@ -38,7 +38,6 @@ class PostAPI(CreateRetrieveUpdateDestroyAPIView):
         return serializer.save(profile=user)
 
     def perform_destroy(self, instance):
-        """Is he him?"""
         self.check_object_permissions(obj=instance, request=self.request)
         return instance.delete()
 
@@ -47,7 +46,7 @@ class UserPostsAPI(ListAPIView):
     serializer_class = PostSerializer
 
     def get_queryset(self):
-        """Get all User's Post"""
+        # Get all User's Post
         username = self.kwargs['slug']
         owner = UserInfo.objects.get(username=username)
         qs = owner.post.all()
@@ -58,7 +57,7 @@ class SeePosts(ListAPIView):
     serializer_class = PostSerializer
 
     def get_queryset(self):
-        """Get Posts"""
+        # Get Posts
         profile = self.request.user
         posts = Post.objects.filter(profile__in=profile.userInfo.following.all()).order_by('-date')
         return posts
@@ -66,7 +65,7 @@ class SeePosts(ListAPIView):
 
 class Like(APIView):
     def post(self, request, *args, **kwargs):
-        """Like"""
+        # Like
         slug = kwargs['slug']
         profile = request.user
         post = get_object_or_404(Post, slug=slug)
@@ -83,7 +82,7 @@ class CommentAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
     queryset = Comment.objects.all()
 
     def delete(self, request, *args, **kwargs):
-        """Delete Comment"""
+        # Delete Comment
         self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
@@ -98,14 +97,14 @@ class CommentAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
         return serializer.save(profile=user, post=post)
 
     def perform_destroy(self, instance):
-        """Is he him?"""
+        # Is he him?
         self.check_object_permissions(obj=instance, request=self.request)
         return instance.delete()
 
 
 class CommentLike(APIView):
     def post(self, request, *args, **kwargs):
-        """Like"""
+        # Like
         id = kwargs['pk']
         profile = request.user
         comment = get_object_or_404(Comment, id=id)
@@ -121,7 +120,7 @@ class PostCommentsAPI(ListAPIView):
     serializer_class = CommentSerializer
 
     def get_queryset(self):
-        """Get Post's Comments"""
+        # Get Post's Comments
         slug = self.kwargs['slug']
         post = get_object_or_404(Post, slug=slug)
         qs = post.comment.all()
@@ -136,7 +135,6 @@ class HashtagAPI(CreateAPIView, RetrieveAPIView):
 class AllHashtagsAPI(ListAPIView):
     serializer_class = HashtagSerializer
     queryset = Hashtag.objects.all()
-    """Search Fields"""
     filterset_fields = ['title']
 
 
