@@ -29,7 +29,3 @@ class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = '__all__'
-
-    def to_representation(self, instance):
-        self.fields['media'] = UserSerializer(many=True, read_only=True)
-        return super(AnswerSerializer, self).to_representation(instance)

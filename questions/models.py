@@ -19,7 +19,7 @@ class Question(models.Model):
     tech = models.ManyToManyField(Tech, blank=True, related_name=relatedName)
     text = models.TextField()
     slug = models.SlugField(blank=True, max_length=100)
-    media = models.FileField(upload_to=upload_file, editable=False, blank=True,
+    media = models.FileField(upload_to=upload_file, blank=True,
                              null=True, validators=[PictureAndVideoValidator])
     upVote = models.ManyToManyField(Users, blank=True, related_name='questionUpVote')
     downVote = models.ManyToManyField(Users, blank=True, related_name='questionDownVote')
@@ -35,7 +35,7 @@ class Answer(models.Model):
     profile = models.ForeignKey(Users, on_delete=models.CASCADE, related_name=relatedName)
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name=relatedName)
     text = models.TextField()
-    media = models.FileField(upload_to=upload_file, editable=False, blank=True,
+    media = models.FileField(upload_to=upload_file, blank=True,
                              null=True, validators=[PictureAndVideoValidator])
     upVote = models.ManyToManyField(Users, blank=True, related_name='answerUpVote')
     downVote = models.ManyToManyField(Users, blank=True, related_name='answerDownVote')
