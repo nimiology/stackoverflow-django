@@ -24,7 +24,7 @@ class Post(models.Model):
     description = models.TextField(blank=True, null=True)
     hashtag = models.ManyToManyField(Hashtag, blank=True, related_name='post')
     like = models.ManyToManyField(Users, blank=True, related_name='likes')
-    media = models.FileField(upload_to=upload_file, editable=False, blank=True,
+    media = models.FileField(upload_to=upload_file, blank=True,
                              null=True, validators=[PictureAndVideoValidator])
     date = models.DateTimeField(auto_now_add=True)
 
