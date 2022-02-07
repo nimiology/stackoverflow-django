@@ -105,7 +105,7 @@ class JobOfferSerializer(serializers.ModelSerializer):
         return super(JobOfferSerializer, self).to_representation(instance)
 
 
-class WalletSerializer(serializers.ModelSerializer):
+class MyUserSerializer(serializers.ModelSerializer):
     employee = EmployeeProfileSerializer(read_only=True)
     company = CompanyProfileSerializer(read_only=True)
 
@@ -115,7 +115,7 @@ class WalletSerializer(serializers.ModelSerializer):
 
 
 class WorkExperienceSerializer(serializers.ModelSerializer):
-    profile = WalletSerializer(required=False)
+    profile = MyUserSerializer(required=False)
 
     class Meta:
         model = WorkExperience
@@ -127,7 +127,7 @@ class WorkExperienceSerializer(serializers.ModelSerializer):
 
 
 class AchievementSerializer(serializers.ModelSerializer):
-    profile = WalletSerializer(required=False)
+    profile = MyUserSerializer(required=False)
 
     class Meta:
         model = Achievement
@@ -135,7 +135,7 @@ class AchievementSerializer(serializers.ModelSerializer):
 
 
 class FollowingSerializer(serializers.ModelSerializer):
-    following = WalletSerializer(many=True, read_only=True)
+    following = MyUserSerializer(many=True, read_only=True)
 
     class Meta:
         model = MyUser
@@ -148,7 +148,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['profile'] = WalletSerializer(read_only=True)
+        self.fields['profile'] = MyUserSerializer(read_only=True)
         return super(NotificationSerializer, self).to_representation(instance)
 
 

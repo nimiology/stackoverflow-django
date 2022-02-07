@@ -9,7 +9,7 @@ from posts.utils import *
 
 
 class MyUser(AbstractUser):
-    following = models.ManyToManyField('self', blank=True, related_name='followers')
+    following = models.ManyToManyField('self', blank=True)
     """
     Users within the Django authentication system are represented by this
     model.

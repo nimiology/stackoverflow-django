@@ -7,8 +7,8 @@ from posts.models import Post, Comment, Hashtag
 from users.models import MyUser
 
 
-def UserToken():
-    user = MyUser(username='testman', password='1234')
+def UserToken(username):
+    user = MyUser(username=username, password='1234')
     user.save()
     refresh = RefreshToken.for_user(user)
     return user, f'Bearer {refresh.access_token}'
@@ -16,7 +16,7 @@ def UserToken():
 
 class PostTest(APITestCase):
     def setUp(self):
-        self.user, self.tokenUser = UserToken()
+        self.user, self.tokenUser = UserToken('testman')
         self.post = Post(profile=self.user)
         self.post.save()
 
@@ -54,7 +54,7 @@ class PostTest(APITestCase):
 
 class CommentTest(APITestCase):
     def setUp(self):
-        self.user, self.tokenUser = UserToken()
+        self.user, self.tokenUser = UserToken('testman')
         self.post = Post(profile=self.user)
         self.post.save()
         self.comment = Comment(profile=self.user, post=self.post, text='test')
@@ -88,7 +88,7 @@ class CommentTest(APITestCase):
 
 class HashtagTest(APITestCase):
     def setUp(self):
-        self.user, self.tokenUser = UserToken()
+        self.user, self.tokenUser = UserToken('testman')
         self.hashtag = Hashtag(title='test')
         self.hashtag.save()
         self.post = Post(profile=self.user)

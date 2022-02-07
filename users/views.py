@@ -7,14 +7,15 @@ from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, DestroyAPIView
 
 from posts.permission import IsItOwner
-from users.permission import IsItOwnerCompany
+from users.permission import IsItOwnerCompany, ReadOnly
 from users.serializer import *
 from users.utils import GetCompany
 
 
-class WalletAPI(RetrieveAPIView):
-    serializer_class = WalletSerializer
+class MyUserAPI(RetrieveAPIView):
+    serializer_class = MyUserSerializer
     queryset = MyUser.objects.all()
+    lookup_field = 'username'
 
     def get(self, request, *args, **kwargs):
         """Get Wallet"""
@@ -32,13 +33,13 @@ class FollowAPI(APIView):
             notif = Notification(profile=following,
                                  text=f'{profile.id} followed you!', )
             notif.save()
-            return Response(data=WalletSerializer(following).data, status=status.HTTP_200_OK)
+            return Response(data=MyUserSerializer(following).data, status=status.HTTP_200_OK)
         else:
             raise ValidationError('You cant follow yourself')
 
 
 class FollowingAPI(ListAPIView):
-    serializer_class = WalletSerializer
+    serializer_class = MyUserSerializer
 
     def get_queryset(self):
         """Get User Following"""
@@ -49,17 +50,17 @@ class FollowingAPI(ListAPIView):
 
 
 class FollowersAPI(ListAPIView):
-    serializer_class = WalletSerializer
+    serializer_class = MyUserSerializer
 
     def get_queryset(self):
-        """Get User Following"""
+        """Get User Followers"""
         username = self.kwargs['slug']
         profile = get_object_or_404(MyUser, username=username)
-        followings = profile.followers.all()
+        followings = MyUser.objects.filter(following__in=[profile])
         return followings
 
 
-class IndustriesAPI(CreateRetrieveUpdateDestroyAPIView):
+class IndustriesAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
     serializer_class = IndustriesSerializer
     queryset = Industries.objects.all()
 
@@ -68,22 +69,23 @@ class GetAllIndustriesAPI(ListAPIView):
     """Get All Industries"""
     serializer_class = IndustriesSerializer
     # search fields
-    filterset_fields = ['title', 'status']
+    filterset_fields = ['title']
     queryset = Industries.objects.all()
 
 
-class CategoryAPI(CreateRetrieveUpdateDestroyAPIView):
+class CategoryAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
+
 
 class GetAllCategoryAPI(ListAPIView):
     """Get All Categories"""
     serializer_class = CategorySerializer
-    filterset_fields = ['title', 'industry__title', 'upperCategory__title', 'status']
+    filterset_fields = ['title', 'industry__title', 'upperCategory__title']
     queryset = Category.objects.all()
 
 
-class TechAPI(CreateRetrieveUpdateDestroyAPIView):
+class TechAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
     serializer_class = TechSerializer
     queryset = Tech.objects.all()
 
@@ -95,7 +97,7 @@ class GetAllTechAPI(ListAPIView):
     queryset = Tech.objects.all()
 
 
-class JobAPI(CreateRetrieveUpdateDestroyAPIView):
+class JobAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
     serializer_class = JobSerializer
     queryset = Job.objects.all()
 
@@ -412,3 +414,27 @@ class EmployeeAll(ListAPIView):
     filterset_fields = ['gender', 'category', 'industries',
                         'relationshipStatus', 'jobSearchStatus']
     queryset = Employee.objects.all()
+
+
+class EmployeeRU(RetrieveAPIView, UpdateAPIView):
+    serializer_class = EmployeeSerializer
+    permission_classes = [IsItOwner | ReadOnly]
+    queryset = Employee.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+
+class CompanyRU(RetrieveAPIView, UpdateAPIView):
+    serializer_class = CompanySerializer
+    permission_classes = [IsItOwner | ReadOnly]
+    queryset = Company.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)

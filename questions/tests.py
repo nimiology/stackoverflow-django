@@ -8,7 +8,7 @@ from posts.tests import UserToken
 
 class QuestionTest(APITestCase):
     def setUp(self):
-        self.user, self.tokenUser = UserToken()
+        self.user, self.tokenUser = UserToken('testman')
         self.question = Question(profile=self.user, title='test', text='asdf')
         self.question.save()
 
@@ -56,7 +56,7 @@ class QuestionTest(APITestCase):
 
 class AnswerTest(APITestCase):
     def setUp(self):
-        self.user, self.tokenUser = UserToken()
+        self.user, self.tokenUser = UserToken('testman')
         self.question = Question(profile=self.user, title='test', text='asdf')
         self.question.save()
         self.answer = Answer(profile=self.user, question=self.question, text='test')

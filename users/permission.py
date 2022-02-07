@@ -1,7 +1,13 @@
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import SAFE_METHODS
 
 from users.utils import GetCompany
+
+
+class ReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS
 
 
 class IsItOwnerCompany(permissions.BasePermission):
