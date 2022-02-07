@@ -5,7 +5,7 @@ from decouple import config
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from Questions.models import Question, Answer
+from questions.models import Question, Answer
 from users.models import UserInfo
 
 

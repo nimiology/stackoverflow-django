@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
-from Questions.models import Question, Answer
+from questions.models import Question, Answer
 
 
 class QuestionAdmin(admin.ModelAdmin):

@@ -1,11 +1,9 @@
-from django.conf.urls import url
-
 from users.views import *
 from django.urls import path, include
 
 urlpatterns = [
-    url('auth/', include('djoser.urls')),
-    url('auth/', include('djoser.urls.jwt')),
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.jwt')),
 
     path('wallet/<pk>', WalletAPI.as_view()),
     path('follow/<slug>', FollowAPI.as_view()),
@@ -28,10 +26,6 @@ urlpatterns = [
     path('job/<int:pk>', JobAPI.as_view()),
     path('jobs', GetAllJobAPI.as_view()),
 
-    path('companydocument', CompanyDocumentAPI.as_view()),
-    path('companydocument/<int:pk>', CompanyDocumentAPI.as_view()),
-    path('company/<slug>/companydocument', CompanyDocuments.as_view()),
-
     path('educationalbackground', EducationalBackgroundAPI.as_view()),
     path('educationalbackground/<int:pk>', EducationalBackgroundAPI.as_view()),
     path('user/<slug>/educationalbackground', ProfileEducationalBackground.as_view()),
@@ -45,7 +39,6 @@ urlpatterns = [
     path('user/<slug>/achievement', ProfileAchievement.as_view()),
 
     path('notification', UserNotification.as_view()),
-    path('notification/custom', CustomNotification.as_view()),
     path('notification/<id>/markasread', NotificationMarkAsRead.as_view()),
 
     path('applyforjob', ApplyForJobAPI.as_view()),

@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, get_object_or_404
 
-from Posts.utils import CreateRetrieveUpdateDestroyAPIView
-from Questions.models import Question, Answer
-from Questions.serializer import QuestionSerializer, AnswerSerializer
-from Posts.permission import IsItOwner
+from posts.utils import CreateRetrieveUpdateDestroyAPIView
+from questions.models import Question, Answer
+from questions.serializer import QuestionSerializer, AnswerSerializer
+from posts.permission import IsItOwner
 
 
 class QuestionAPI(CreateRetrieveUpdateDestroyAPIView):

@@ -4,11 +4,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, DestroyAPIView
 
-from Posts.serializer import *
-from Posts.permission import IsItOwner
+from posts.serializer import *
+from posts.permission import IsItOwner
 from rest_framework.exceptions import ValidationError
-from Posts.utils import CreateRetrieveUpdateDestroyAPIView
-from users.models import UserInfo
+from posts.utils import CreateRetrieveUpdateDestroyAPIView
+from users.models import MyUser
 
 
 class PostAPI(CreateRetrieveUpdateDestroyAPIView):
@@ -31,6 +31,7 @@ class PostAPI(CreateRetrieveUpdateDestroyAPIView):
 
     def perform_create(self, serializer):
         user = self.request.user
+        print(user)
         return serializer.save(profile=user)
 
     def perform_update(self, serializer):
@@ -48,7 +49,7 @@ class UserPostsAPI(ListAPIView):
     def get_queryset(self):
         # Get all User's Post
         username = self.kwargs['slug']
-        owner = UserInfo.objects.get(username=username)
+        owner = MyUser.objects.get(username=username)
         qs = owner.post.all()
         return qs
 
@@ -57,7 +58,7 @@ class SeePosts(ListAPIView):
     serializer_class = PostSerializer
 
     def get_queryset(self):
-        # Get Posts
+        # Get posts
         profile = self.request.user
         posts = Post.objects.filter(profile__in=profile.userInfo.following.all()).order_by('-date')
         return posts

@@ -11,6 +11,8 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default='127.0.0.1')
 
+AUTH_USER_MODEL = 'users.MyUser'
+
 # Application definition
 
 
@@ -29,12 +31,13 @@ INSTALLED_APPS = [
 
     # my apps :
     "users.apps.UsersConfig",
-    "Posts.apps.PostsConfig",
-    "Questions.apps.QuestionsConfig"
+    "posts.apps.PostsConfig",
+    "questions.apps.QuestionsConfig"
 
 ]
-
-REST_FRAMEWORK = {'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+REST_FRAMEWORK = {'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+                  'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication',
+                  ]
                   }
 
 SIMPLE_JWT = {
@@ -45,7 +48,7 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': None,
 
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': config('SIGNING_KEY'),
+    'SIGNING_KEY': config('SECRET_KEY'),
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,

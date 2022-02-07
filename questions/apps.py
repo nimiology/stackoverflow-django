@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class PostsConfig(AppConfig):
+class QuestionsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'Posts'
+    name = 'questions'

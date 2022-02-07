@@ -1,5 +1,5 @@
 from django.contrib import admin
-from Posts.models import Post, Comment, Hashtag
+from posts.models import Post, Comment, Hashtag
 
 
 class PostAdmin(admin.ModelAdmin):

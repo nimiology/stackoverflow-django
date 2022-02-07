@@ -79,21 +79,6 @@ class CategorySerializer(serializers.ModelSerializer):
         return super(CategorySerializer, self).to_representation(instance)
 
 
-class VerifyCategorySerializer(serializers.ModelSerializer):
-    title = serializers.CharField(required=False)
-
-    class Meta:
-        model = Category
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        self.fields['industry'] = IndustriesSerializer(read_only=True)
-        self.fields['upperCategory'] = ReadOnlyField(
-            source='upperCategory.title')
-        self.fields['category'] = CategorySerializer(read_only=True, many=True)
-        return super(VerifyCategorySerializer, self).to_representation(instance)
-
-
 class CompanyProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
@@ -125,7 +110,7 @@ class WalletSerializer(serializers.ModelSerializer):
     company = CompanyProfileSerializer(read_only=True)
 
     class Meta:
-        model = UserInfo
+        model = MyUser
         fields = '__all__'
 
 
@@ -153,7 +138,7 @@ class FollowingSerializer(serializers.ModelSerializer):
     following = WalletSerializer(many=True, read_only=True)
 
     class Meta:
-        model = UserInfo
+        model = MyUser
         fields = ['following']
 
 
@@ -165,17 +150,6 @@ class NotificationSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         self.fields['profile'] = WalletSerializer(read_only=True)
         return super(NotificationSerializer, self).to_representation(instance)
-
-
-class CompanyDocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CompanyDocument
-        fields = '__all__'
-        extra_kwargs = {'company': {'required': False}}
-
-    def to_representation(self, instance):
-        self.fields['company'] = CompanyProfileSerializer()
-        return super(CompanyDocumentSerializer, self).to_representation(instance)
 
 
 class ApplyForJobSerializer(serializers.ModelSerializer):

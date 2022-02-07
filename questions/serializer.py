@@ -1,7 +1,7 @@
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
-from Questions.models import *
+from questions.models import *
 from users.serializer import TechSerializer, CategorySerializer
 
 

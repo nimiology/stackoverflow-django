@@ -1,4 +1,4 @@
-from Posts.utils import slug_generator
+from posts.utils import slug_generator
 from users.models import Notification
 
 

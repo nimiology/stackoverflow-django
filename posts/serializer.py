@@ -1,7 +1,7 @@
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
-from Posts.models import Hashtag, Post, Comment
+from posts.models import Hashtag, Post, Comment
 
 
 class HashtagSerializer(serializers.ModelSerializer):

@@ -1,4 +1,4 @@
-from Questions.views import *
+from questions.views import *
 from django.urls import path
 
 urlpatterns = [

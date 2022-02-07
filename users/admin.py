@@ -3,8 +3,6 @@ from django.contrib import admin
 from .models import *
 
 
-# Register your models here.
-
 class ApplyForJobAdmin(admin.ModelAdmin):
     list_display = ['employee', 'company', 'sender', 'status']
 
@@ -44,7 +42,7 @@ class NotificationAdmin(admin.ModelAdmin):
 
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(Employee)
-admin.site.register(UserInfo)
+admin.site.register(MyUser)
 admin.site.register(Category, CategoryProfileAdmin)
 admin.site.register(WorkExperience, WorkExperienceAdmin)
 admin.site.register(EducationalBackground, EducationalBackgroundAdmin)
@@ -55,4 +53,3 @@ admin.site.register(Tech)
 admin.site.register(Job)
 admin.site.register(JobOffer)
 admin.site.register(ApplyForJob, ApplyForJobAdmin)
-admin.site.register(CompanyDocument)
