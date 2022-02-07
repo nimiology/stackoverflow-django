@@ -31,7 +31,6 @@ class PostAPI(CreateRetrieveUpdateDestroyAPIView):
 
     def perform_create(self, serializer):
         user = self.request.user
-        print(user)
         return serializer.save(profile=user)
 
     def perform_update(self, serializer):
@@ -60,7 +59,7 @@ class SeePosts(ListAPIView):
     def get_queryset(self):
         # Get posts
         profile = self.request.user
-        posts = Post.objects.filter(profile__in=profile.userInfo.following.all()).order_by('-date')
+        posts = Post.objects.filter(profile__in=profile.following.all()).order_by('-date')
         return posts
 
 
