@@ -21,7 +21,7 @@ class PostTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser)
 
     def test_create_request(self):
-        response = self.client.post(reverse('post:create_post'),
+        response = self.client.post(reverse('post:post'),
                                     data={'description': 'test1'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 

@@ -14,16 +14,21 @@ from posts.utils import CreateRetrieveUpdateDestroyAPIView
 class PostAPI(CreateRetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
-    permission_classes = [IsItOwner]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'slug'
 
-    def get(self, request, *args, **kwargs):
-        self.permission_classes = []
-        return self.retrieve(request, *args, **kwargs)
+    def put(self, request, *args, **kwargs):
+        self.permission_classes = [IsItOwner]
+        return self.update(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        self.permission_classes = [IsAuthenticated]
-        return self.retrieve(request, *args, **kwargs)
+    def patch(self, request, *args, **kwargs):
+        self.permission_classes = [IsItOwner]
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        # Delete Post
+        self.permission_classes = [IsItOwner]
+        return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -32,10 +37,6 @@ class PostAPI(CreateRetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         user = self.request.user
         return serializer.save(profile=user)
-
-    def perform_destroy(self, instance):
-        self.check_object_permissions(obj=instance, request=self.request)
-        return instance.delete()
 
 
 class PostsListAPI(ListAPIView):

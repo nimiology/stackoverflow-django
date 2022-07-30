@@ -4,7 +4,7 @@ from django.urls import path
 app_name = 'post'
 
 urlpatterns = [
-    path('post/', PostAPI.as_view(), name='create_post'),
+    path('post/', PostAPI.as_view(), name='post'),
     path('post/<str:slug>/', PostAPI.as_view(), name='post'),
     path('posts/all/', PostsListAPI.as_view(), name='posts_list'),
     path('seeposts/', SeePosts.as_view(), name='see_post'),
