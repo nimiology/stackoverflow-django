@@ -1,5 +1,6 @@
 from rest_framework import status
 from rest_framework.generics import ListAPIView, get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, DestroyAPIView
@@ -8,26 +9,21 @@ from posts.serializer import *
 from posts.permission import IsItOwner
 from rest_framework.exceptions import ValidationError
 from posts.utils import CreateRetrieveUpdateDestroyAPIView
-from users.models import MyUser
 
 
 class PostAPI(CreateRetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
+    permission_classes = [IsItOwner]
     lookup_field = 'slug'
 
-    def put(self, request, *args, **kwargs):
-        self.permission_classes = [IsItOwner]
-        return self.update(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        self.permission_classes = []
+        return self.retrieve(request, *args, **kwargs)
 
-    def patch(self, request, *args, **kwargs):
-        self.permission_classes = [IsItOwner]
-        return self.partial_update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        # Delete Post
-        self.permission_classes = [IsItOwner]
-        return self.destroy(request, *args, **kwargs)
+    def post(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticated]
+        return self.retrieve(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -42,15 +38,18 @@ class PostAPI(CreateRetrieveUpdateDestroyAPIView):
         return instance.delete()
 
 
-class UserPostsAPI(ListAPIView):
+class PostsListAPI(ListAPIView):
     serializer_class = PostSerializer
-
-    def get_queryset(self):
-        # Get all User's Post
-        username = self.kwargs['slug']
-        owner = MyUser.objects.get(username=username)
-        qs = owner.post.all()
-        return qs
+    queryset = Post.objects.all()
+    filterset_fields = {'profile': ['exact'],
+                        'slug': ['contains', 'exact'],
+                        'tags': ['contains'],
+                        'description': ['contains', 'exact'],
+                        'hashtags': ['contains'],
+                        'likes': ['contains'],
+                        'date': ['contains', 'exact', 'lte', 'gte'],
+                        }
+    ordering_fields = '__all__'
 
 
 class SeePosts(ListAPIView):
@@ -69,10 +68,10 @@ class Like(APIView):
         slug = kwargs['slug']
         profile = request.user
         post = get_object_or_404(Post, slug=slug)
-        if not profile in post.like.all():
-            post.like.add(profile)
+        if not profile in post.likes.all():
+            post.likes.add(profile)
         else:
-            post.like.remove(profile)
+            post.likes.remove(profile)
         data = PostSerializer(post).data
         return Response(data, status=status.HTTP_200_OK)
 
@@ -108,38 +107,40 @@ class CommentLike(APIView):
         id = kwargs['pk']
         profile = request.user
         comment = get_object_or_404(Comment, id=id)
-        if not profile in comment.like.all():
-            comment.like.add(profile)
+        if not profile in comment.likes.all():
+            comment.likes.add(profile)
         else:
-            comment.like.remove(profile)
+            comment.likes.remove(profile)
         data = CommentSerializer(comment).data
         return Response(data, status=status.HTTP_200_OK)
 
 
-class PostCommentsAPI(ListAPIView):
+class CommentsListAPI(ListAPIView):
     serializer_class = CommentSerializer
+    queryset = Comment.objects.all()
+    filterset_fields = {'profile': ['exact'],
+                        'post': ['exact'],
+                        'replyTo': ['exact'],
+                        'tags': ['contains'],
+                        'text': ['contains', 'exact'],
+                        'likes': ['contains'],
+                        'date': ['contains', 'exact', 'lte', 'gte'],
+                        }
+    ordering_fields = '__all__'
 
-    def get_queryset(self):
-        # Get Post's Comments
-        slug = self.kwargs['slug']
-        post = get_object_or_404(Post, slug=slug)
-        qs = post.comment.all()
-        return qs
 
-
-class HashtagAPI(CreateAPIView, RetrieveAPIView):
+class HashtagAPI(RetrieveAPIView):
     serializer_class = HashtagSerializer
     queryset = Hashtag.objects.all()
 
+    def get(self, request, *args, **kwargs):
+        instance = self.get_queryset().get_or_create(title=kwargs['title'])[0]
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
-class AllHashtagsAPI(ListAPIView):
+
+class HashtagsListAPI(ListAPIView):
     serializer_class = HashtagSerializer
     queryset = Hashtag.objects.all()
     filterset_fields = ['title']
-
-
-class HashtagPostAPI(ListAPIView):
-    serializer_class = PostSerializer
-
-    def get_queryset(self):
-        return get_object_or_404(Hashtag, pk=self.kwargs['id']).post.all()
+    ordering_fields = '__all__'

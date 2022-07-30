@@ -20,10 +20,10 @@ class Hashtag(models.Model):
 class Post(models.Model):
     profile = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='post')
     slug = models.SlugField(blank=True, max_length=100)
-    tag = models.ManyToManyField(Users, blank=True, related_name='tagInPost')
+    tags = models.ManyToManyField(Users, blank=True, related_name='tagInPost')
     description = models.TextField(blank=True, null=True)
-    hashtag = models.ManyToManyField(Hashtag, blank=True, related_name='post')
-    like = models.ManyToManyField(Users, blank=True, related_name='likes')
+    hashtags = models.ManyToManyField(Hashtag, blank=True, related_name='post')
+    likes = models.ManyToManyField(Users, blank=True, related_name='likes')
     media = models.FileField(upload_to=upload_file, blank=True,
                              null=True, validators=[PictureAndVideoValidator])
     date = models.DateTimeField(auto_now_add=True)
@@ -37,8 +37,8 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comment')
     replyTo = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE, related_name='commentsReply')
     text = models.TextField()
-    tag = models.ManyToManyField(Users, blank=True, related_name='commentReply')
-    like = models.ManyToManyField(Users, blank=True, related_name='commentLikes')
+    tags = models.ManyToManyField(Users, blank=True, related_name='commentReply')
+    likes = models.ManyToManyField(Users, blank=True, related_name='commentLikes')
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -46,7 +46,7 @@ class Comment(models.Model):
 
 
 pre_save.connect(post_pre_save, sender=Post)
-m2m_changed.connect(likes_pre_save, sender=Post.like.through)
+m2m_changed.connect(likes_pre_save, sender=Post.likes.through)
 pre_save.connect(comments_pre_save, sender=Comment)
-m2m_changed.connect(post_M2M_changed, sender=Post.tag.through)
-m2m_changed.connect(tag_comment_pre_save, sender=Comment.tag.through)
+m2m_changed.connect(post_M2M_changed, sender=Post.tags.through)
+m2m_changed.connect(tag_comment_pre_save, sender=Comment.tags.through)

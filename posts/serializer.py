@@ -12,15 +12,15 @@ class HashtagSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     profile = UserSerializer(read_only=True, required=False)
-    like = UserSerializer(many=True, read_only=True)
+    likes = UserSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['tag'] = UserSerializer(many=True)
-        self.fields['hashtag'] = HashtagSerializer(many=True)
+        self.fields['tags'] = UserSerializer(many=True)
+        self.fields['hashtags'] = HashtagSerializer(many=True)
         return super(PostSerializer, self).to_representation(instance)
 
 
