@@ -3,7 +3,7 @@ from rest_framework.generics import ListAPIView, get_object_or_404, RetrieveUpda
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, DestroyAPIView
+from rest_framework.generics import CreateAPIView, GenericAPIView, RetrieveAPIView, DestroyAPIView
 
 from posts.serializer import *
 from posts.permission import IsItOwner
@@ -67,18 +67,19 @@ class SeePosts(ListAPIView):
         return posts
 
 
-class Like(APIView):
+class PostLike(RetrieveAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    lookup_field = 'slug'
+
     def post(self, request, *args, **kwargs):
-        # Like
-        slug = kwargs['slug']
         profile = request.user
-        post = get_object_or_404(Post, slug=slug)
+        post = self.get_object()
         if not profile in post.likes.all():
             post.likes.add(profile)
         else:
             post.likes.remove(profile)
-        data = PostSerializer(post).data
-        return Response(data, status=status.HTTP_200_OK)
+        return self.retrieve(request, *args, **kwargs)
 
 
 class CommentAPI(RetrieveAPIView, DestroyAPIView):
@@ -96,18 +97,10 @@ class CommentAPI(RetrieveAPIView, DestroyAPIView):
         return instance.delete()
 
 
-class CommentLike(APIView):
-    def post(self, request, *args, **kwargs):
-        # Like
-        id = kwargs['pk']
-        profile = request.user
-        comment = get_object_or_404(Comment, id=id)
-        if not profile in comment.likes.all():
-            comment.likes.add(profile)
-        else:
-            comment.likes.remove(profile)
-        data = CommentSerializer(comment).data
-        return Response(data, status=status.HTTP_200_OK)
+class CommentLike(PostLike):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    lookup_field = 'pk'
 
 
 class CommentsListAPI(ListCreateAPIView):

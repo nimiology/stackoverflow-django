@@ -8,7 +8,7 @@ urlpatterns = [
     path('posts/', PostsListAPI.as_view(), name='posts_list'),
     path('seeposts/', SeePosts.as_view(), name='see_post'),
 
-    path('post/<slug>/like/', Like.as_view(), name='post_like'),
+    path('post/<slug>/like/', PostLike.as_view(), name='post_like'),
 
     path('comment/', CommentsListAPI.as_view(), name='comments_list'),
     path('comment/<int:pk>/', CommentAPI.as_view(), name='comment'),
