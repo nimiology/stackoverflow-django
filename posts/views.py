@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.generics import ListAPIView, get_object_or_404
+from rest_framework.generics import ListAPIView, get_object_or_404, RetrieveUpdateDestroyAPIView, ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -8,10 +8,9 @@ from rest_framework.generics import CreateAPIView, RetrieveAPIView, DestroyAPIVi
 from posts.serializer import *
 from posts.permission import IsItOwner
 from rest_framework.exceptions import ValidationError
-from posts.utils import CreateRetrieveUpdateDestroyAPIView
 
 
-class PostAPI(CreateRetrieveUpdateDestroyAPIView):
+class PostAPI(RetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
     permission_classes = [IsAuthenticated]
@@ -30,16 +29,12 @@ class PostAPI(CreateRetrieveUpdateDestroyAPIView):
         self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
-    def perform_create(self, serializer):
-        user = self.request.user
-        return serializer.save(profile=user)
-
     def perform_update(self, serializer):
         user = self.request.user
         return serializer.save(profile=user)
 
 
-class PostsListAPI(ListAPIView):
+class PostsListAPI(ListCreateAPIView):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
     filterset_fields = {'profile': ['exact'],
@@ -51,6 +46,15 @@ class PostsListAPI(ListAPIView):
                         'date': ['contains', 'exact', 'lte', 'gte'],
                         }
     ordering_fields = '__all__'
+
+    def post(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticated]
+        self.check_permissions(request)
+        return self.create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        return serializer.save(profile=user)
 
 
 class SeePosts(ListAPIView):
@@ -77,7 +81,7 @@ class Like(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class CommentAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
+class CommentAPI(RetrieveAPIView, DestroyAPIView):
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
 
@@ -85,16 +89,6 @@ class CommentAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
         # Delete Comment
         self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        user = self.request.user
-        post = get_object_or_404(Post, slug=self.kwargs['slug'])
-        if 'replyToComment' in self.request.data:
-            replyTOComment = get_object_or_404(Comment, id=self.request.data['replyToComment'])
-            replyToCommentPost = replyTOComment.post.id
-            if replyToCommentPost != post:
-                raise ValidationError("Upper comment didn't found")
-        return serializer.save(profile=user, post=post)
 
     def perform_destroy(self, instance):
         # Is he him?
@@ -116,7 +110,7 @@ class CommentLike(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class CommentsListAPI(ListAPIView):
+class CommentsListAPI(ListCreateAPIView):
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
     filterset_fields = {'profile': ['exact'],
@@ -128,6 +122,10 @@ class CommentsListAPI(ListAPIView):
                         'date': ['contains', 'exact', 'lte', 'gte'],
                         }
     ordering_fields = '__all__'
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        return serializer.save(profile=user)
 
 
 class HashtagAPI(RetrieveAPIView):

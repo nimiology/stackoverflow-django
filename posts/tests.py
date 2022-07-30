@@ -21,10 +21,14 @@ class PostTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser)
 
     def test_create_request(self):
-        response = self.client.post(reverse('post:post'),
+        response = self.client.post(reverse('post:posts_list'),
                                     data={'description': 'test1'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
+    def test_create_request_not_authenticated(self):
+        self.client.credentials()
+        response = self.client.post(reverse('post:posts_list'),
+                                    data={'description': 'test1'})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     def test_get_request(self):
         response = self.client.get(reverse('post:post', args=(self.post.slug,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -64,8 +68,8 @@ class CommentTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser)
 
     def test_create_request(self):
-        response = self.client.post(reverse('post:comment', args=(self.post.slug,)),
-                                    data={'text': 'test'})
+        response = self.client.post(reverse('post:comments_list',),
+                                    data={'text': 'test', 'post':self.post.slug})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_request(self):
