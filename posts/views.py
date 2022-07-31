@@ -71,6 +71,7 @@ class PostLike(RetrieveAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     lookup_field = 'slug'
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         profile = request.user

@@ -1,19 +1,21 @@
-import django_filters
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView, get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, \
+    RetrieveAPIView
 
-from posts.utils import CreateRetrieveUpdateDestroyAPIView
 from questions.models import Question, Answer
 from questions.serializer import QuestionSerializer, AnswerSerializer
 from posts.permission import IsItOwner
 
 
-class QuestionAPI(CreateRetrieveUpdateDestroyAPIView):
+class QuestionAPI(RetrieveUpdateDestroyAPIView):
     serializer_class = QuestionSerializer
     queryset = Question.objects.all()
     lookup_field = 'slug'
+
+    def patch(self, request, *args, **kwargs):
+        # Edit Question
+        self.permission_classes = [IsItOwner]
+        return self.update(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         # Edit Question
@@ -25,12 +27,8 @@ class QuestionAPI(CreateRetrieveUpdateDestroyAPIView):
         self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
-    def perform_create(self, serializer):
-        profile = self.request.user
-        return serializer.save(profile=profile)
-
     def perform_update(self, serializer):
-        instance = get_object_or_404(Question, slug=self.kwargs['slug'])
+        instance = self.get_object()
         self.check_object_permissions(self.request, instance)
         return serializer.save(profile=instance.profile)
 
@@ -39,50 +37,40 @@ class QuestionAPI(CreateRetrieveUpdateDestroyAPIView):
         return instance.delete()
 
 
-class AllUserQuestionsAPI(ListAPIView):
+class QuestionUpVote(RetrieveAPIView):
+    queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    filterset_fields = ['title', 'text']
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'slug'
 
-    def get_queryset(self):
-        username = self.kwargs['slug']
-        qs = Question.objects.filter(profile__username=username)
-        return qs
-
-
-class QuestionUpVote(APIView):
     def post(self, request, *args, **kwargs):
-        # upvote question"""
-        slug = kwargs['slug']
+        # upvote question
         profile = request.user
-        question = get_object_or_404(Question, slug=slug)
+        question = self.get_object()
         if not profile in question.upVote.all():
             if profile in question.downVote.all():
                 question.downVote.remove(profile)
             question.upVote.add(profile)
         else:
             question.upVote.remove(profile)
-        data = QuestionSerializer(question).data
-        return Response(data, status=status.HTTP_200_OK)
+        return self.retrieve(request, *args, **kwargs)
 
 
-class QuestionDownVote(APIView):
+class QuestionDownVote(QuestionUpVote):
     def post(self, request, *args, **kwargs):
         # downvote question
-        slug = kwargs['slug']
         profile = request.user
-        question = get_object_or_404(Question, slug=slug)
+        question = self.get_object()
         if not profile in question.downVote.all():
             if profile in question.upVote.all():
                 question.upVote.remove(profile)
             question.downVote.add(profile)
         else:
             question.downVote.remove(profile)
-        data = QuestionSerializer(question).data
-        return Response(data, status=status.HTTP_200_OK)
+        return self.retrieve(request, *args, **kwargs)
 
 
-class AnswerAPI(CreateRetrieveUpdateDestroyAPIView):
+class AnswerAPI(RetrieveUpdateDestroyAPIView):
     serializer_class = AnswerSerializer
     queryset = Answer.objects.all()
 
@@ -96,14 +84,8 @@ class AnswerAPI(CreateRetrieveUpdateDestroyAPIView):
         self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
-    def perform_create(self, serializer):
-        profile = self.request.user
-        slug = self.kwargs['slug']
-        question = get_object_or_404(Question, slug=slug)
-        return serializer.save(profile=profile, question=question)
-
     def perform_update(self, serializer):
-        instance = get_object_or_404(Answer, id=self.kwargs['pk'])
+        instance = self.get_object()
         self.check_object_permissions(self.request, instance)
         return serializer.save(profile=instance.profile, question=instance.question)
 
@@ -112,49 +94,64 @@ class AnswerAPI(CreateRetrieveUpdateDestroyAPIView):
         return instance.delete()
 
 
-class QuestionAnswers(ListAPIView):
+class AnswersListAPI(ListCreateAPIView):
     serializer_class = AnswerSerializer
+    queryset = Answer.objects.all()
+    filterset_fields = {
+        'profile': ['exact'],
+        'question': ['exact'],
+        'text': ['exact', 'contains'],
+        'upVote': ['contains'],
+        'downVote': ['contains'],
+        'date': ['contains', 'exact', 'lte', 'gte'],
 
-    def get_queryset(self):
-        # Get QuestionAnswer
-        question = get_object_or_404(Question, slug=self.kwargs['slug'])
-        qs = question.answer.all()
-        return qs
+    }
+    ordering_fields = '__all__'
 
-
-class AnswerUpVote(APIView):
     def post(self, request, *args, **kwargs):
-        # upvote Answer
-        id = kwargs['pk']
-        profile = request.user
-        answer = get_object_or_404(Answer, id=id)
-        if not profile in answer.upVote.all():
-            if profile in answer.downVote.all():
-                answer.downVote.remove(profile)
-            answer.upVote.add(profile)
-        else:
-            answer.upVote.remove(profile)
-        data = AnswerSerializer(answer).data
-        return Response(data, status=status.HTTP_200_OK)
+        self.permission_classes = [IsAuthenticated]
+        self.check_permissions(request)
+        return self.create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        profile = self.request.user
+        return serializer.save(profile=profile)
 
 
-class AnswerDownVote(APIView):
-    def post(self, request, *args, **kwargs):
-        # downvote Answer
-        id = kwargs['pk']
-        profile = request.user
-        answer = get_object_or_404(Answer, id=id)
-        if not profile in answer.downVote.all():
-            if profile in answer.upVote.all():
-                answer.upVote.remove(profile)
-            answer.downVote.add(profile)
-        else:
-            answer.downVote.remove(profile)
-        data = AnswerSerializer(answer).data
-        return Response(data, status=status.HTTP_200_OK)
+class AnswerUpVote(QuestionUpVote):
+    queryset = Answer.objects.all()
+    serializer_class = AnswerSerializer
+    lookup_field = 'pk'
 
 
-class SearchQuestions(ListAPIView):
+class AnswerDownVote(QuestionDownVote):
+    queryset = Answer.objects.all()
+    serializer_class = AnswerSerializer
+    lookup_field = 'pk'
+
+
+class QuestionsListAPI(ListCreateAPIView):
     serializer_class = QuestionSerializer
-    queryset = Question.objects.all().order_by('-date')
-    filterset_fields = ['title', 'text', 'category', 'tech']
+    queryset = Question.objects.all()
+    filterset_fields = {
+        'profile': ['exact'],
+        'title': ['exact', 'contains'],
+        'text': ['exact', 'contains'],
+        'slug': ['exact', 'contains'],
+        'categories': ['contains'],
+        'techs': ['contains'],
+        'upVote': ['contains'],
+        'downVote': ['contains'],
+        'date': ['contains', 'exact', 'lte', 'gte'],
+
+    }
+    ordering_fields = '__all__'
+
+    def post(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticated]
+        self.check_permissions(request)
+        return self.create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        profile = self.request.user
+        return serializer.save(profile=profile)

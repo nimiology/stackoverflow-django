@@ -15,8 +15,8 @@ class Question(models.Model):
 
     profile = models.ForeignKey(Users, on_delete=models.CASCADE, related_name=relatedName)
     title = models.CharField(max_length=2048)
-    category = models.ManyToManyField(Category, blank=True, related_name=relatedName)
-    tech = models.ManyToManyField(Tech, blank=True, related_name=relatedName)
+    categories = models.ManyToManyField(Category, blank=True, related_name=relatedName)
+    techs = models.ManyToManyField(Tech, blank=True, related_name=relatedName)
     text = models.TextField()
     slug = models.SlugField(blank=True, max_length=100)
     media = models.FileField(upload_to=upload_file, blank=True,
