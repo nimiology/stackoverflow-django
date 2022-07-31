@@ -3,9 +3,6 @@ from django.urls import path, include
 
 app_name = 'users'
 urlpatterns = [
-    path('auth/', include('djoser.urls')),
-    path('auth/', include('djoser.urls.jwt')),
-
     path('wallet/<username>', MyUserAPI.as_view(), name='wallet'),
     path('follow/<slug>', FollowAPI.as_view(), name='follow'),
     path('user/<slug>/following', FollowingAPI.as_view(), name='followings'),
