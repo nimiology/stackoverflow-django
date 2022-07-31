@@ -1,55 +1,44 @@
 from users.views import *
-from django.urls import path, include
+from django.urls import path
 
 app_name = 'users'
 urlpatterns = [
-    path('wallet/<username>', MyUserAPI.as_view(), name='wallet'),
-    path('follow/<slug>', FollowAPI.as_view(), name='follow'),
-    path('user/<slug>/following', FollowingAPI.as_view(), name='followings'),
-    path('user/<slug>/follower', FollowersAPI.as_view(), name='followers'),
+    path('wallet/<username>/', MyUserAPI.as_view(), name='wallet'),
+    path('follow/<username>/', FollowAPI.as_view(), name='follow'),
+    path('user/<slug>/following/', FollowingAPI.as_view(), name='followings'),
+    path('user/<slug>/follower/', FollowersAPI.as_view(), name='followers'),
 
-    path('industry', IndustriesAPI.as_view(), name='create_industry'),
-    path('industry/<int:pk>', IndustriesAPI.as_view(), name='industry'),
-    path('industries', GetAllIndustriesAPI.as_view(), name='industries'),
+    path('industry/<title>/', IndustriesAPI.as_view(), name='industry'),
+    path('industry/', GetAllIndustriesAPI.as_view(), name='industries_list'),
 
-    path('category', CategoryAPI.as_view(), name='create_category'),
-    path('category/<int:pk>', CategoryAPI.as_view(), name='category'),
-    path('categorys', GetAllCategoryAPI.as_view(), name='categories'),
+    path('category/<int:pk>/', CategoryAPI.as_view(), name='category'),
+    path('category/', GetAllCategoryAPI.as_view(), name='categories_list'),
 
-    path('tech', TechAPI.as_view(), name='create_tech'),
-    path('tech/<int:pk>', TechAPI.as_view(), name='tech'),
-    path('techs', GetAllTechAPI.as_view(), name='techs'),
+    path('tech/<int:pk>/', TechAPI.as_view(), name='tech'),
+    path('tech/', GetAllTechAPI.as_view(), name='techs_list'),
 
-    path('job', JobAPI.as_view(), name='create_job'),
     path('job/<int:pk>', JobAPI.as_view(), name='job'),
-    path('jobs', GetAllJobAPI.as_view(), name='jobs'),
+    path('jobs/', GetAllJobAPI.as_view(), name='jobs_list'),
 
-    path('educationalbackground', EducationalBackgroundAPI.as_view(), name='create_educationalbackground'),
-    path('educationalbackground/<int:pk>', EducationalBackgroundAPI.as_view(), name='educationalbackground'),
-    path('user/<slug>/educationalbackground', ProfileEducationalBackground.as_view(), name='user_educationalbackgrounds'),
+    path('educationalbackground/<int:pk>/', EducationalBackgroundAPI.as_view(), name='educationalbackground'),
+    path('educationalbackground/', EducationalBackgroundListAPI.as_view(), name='educationalbackgrounds_list'),
 
-    path('workexperience', WorkExperienceAPI.as_view(), name='create_workexperience'),
-    path('workexperience/<int:pk>', WorkExperienceAPI.as_view(), name='workexperience'),
-    path('user/<slug>/workexperience', ProfileWorkExperience.as_view(), name='user_workexperiences'),
+    path('workexperience/<int:pk>/', WorkExperienceAPI.as_view(), name='workexperience'),
+    path('workexperience/', WorkExperienceListAPI.as_view(), name='workexperiences_list'),
 
-    path('achievement', AchievementAPI.as_view(), name='create_achievement'),
-    path('achievement/<int:pk>', AchievementAPI.as_view(), name='achievement'),
-    path('user/<slug>/achievement', ProfileAchievement.as_view(), name='user_achievements'),
+    path('achievement/<int:pk>/', AchievementAPI.as_view(), name='achievement'),
+    path('achievement/', AchievementLIstAPI.as_view(), name='achievements_list'),
 
-    path('notification', UserNotification.as_view(), name='notification'),
-    path('notification/<id>/markasread', NotificationMarkAsRead.as_view(), name='notification_markasread'),
+    path('notification/', UserNotificationListAPI.as_view(), name='notification'),
+    path('notification/<pk>/markasread/', NotificationMarkAsRead.as_view(), name='notification_markasread'),
 
-    path('applyforjob', ApplyForJobAPI.as_view(), name='create_applyforjob'),
-    path('applyforjob/<int:pk>', ApplyForJobAPI.as_view(), name='applyforjob'),
-    path('applyforjob/<int:pk>/accept', VerifyApplyForJobAPI.as_view(), name='accept_applyforjob'),
-    path('applyforjob/<int:pk>/reject', VerifyApplyForJobAPI.as_view(), name='reject_applyforjob'),
-    path('user/<slug>/applyforjob', AllAppliesForJob.as_view(), name='user_applyforjob'),
+    path('applyforjob/<int:pk>/', ApplyForJobAPI.as_view(), name='applyforjob'),
+    path('applyforjob/<int:pk>/accept/', VerifyApplyForJobAPI.as_view(), name='accept_applyforjob'),
+    path('applyforjob/<int:pk>/reject/', VerifyApplyForJobAPI.as_view(), name='reject_applyforjob'),
+    path('applyforjob/', AppliesForJobListAPI.as_view(), name='applyforjobs_list'),
 
-    path('joboffer', JobOfferAPI.as_view(), name='create_joboffer'),
-    path('joboffer/<int:pk>', JobOfferAPI.as_view(), name='joboffer'),
-    path('company/<slug>/joboffers', GetAllProfileJobOffer.as_view(), name='company_joboffers'),
-    path('joboffers', SearchJobOffers.as_view(), name='joboffers'),
-
+    path('joboffer/<int:pk>/', JobOfferAPI.as_view(), name='joboffer'),
+    path('joboffer/', JobOfferListAPI.as_view(), name='joboffers_list'),
 
     path('company/', CompanyAll.as_view(), name='companies'),
     path('employee/', EmployeeAll.as_view(), name='employees'),

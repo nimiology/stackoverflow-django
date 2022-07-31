@@ -115,7 +115,7 @@ class MyUserSerializer(serializers.ModelSerializer):
 
 
 class WorkExperienceSerializer(serializers.ModelSerializer):
-    profile = MyUserSerializer(required=False)
+    profile = MyUserSerializer(required=False, read_only=True)
 
     class Meta:
         model = WorkExperience
@@ -127,7 +127,7 @@ class WorkExperienceSerializer(serializers.ModelSerializer):
 
 
 class AchievementSerializer(serializers.ModelSerializer):
-    profile = MyUserSerializer(required=False)
+    profile = MyUserSerializer(required=False, read_only=True)
 
     class Meta:
         model = Achievement

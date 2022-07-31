@@ -1,13 +1,14 @@
-from django.db.models import Q
 from django.http import Http404
 from rest_framework import status
 from rest_framework.generics import ListAPIView, get_object_or_404, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, DestroyAPIView
+from rest_framework.generics import RetrieveAPIView, GenericAPIView, \
+    ListCreateAPIView
 
 from posts.permission import IsItOwner
-from users.permission import IsItOwnerCompany, ReadOnly
+from users.permission import IsItOwnerCompany, ReadOnly, IsItEmployee
 from users.serializer import *
 from users.utils import GetCompany
 
@@ -22,20 +23,23 @@ class MyUserAPI(RetrieveAPIView):
         return self.retrieve(request, *args, **kwargs)
 
 
-class FollowAPI(APIView):
+class FollowAPI(ListAPIView):
+    queryset = MyUser.objects.all()
+    serializer_class = MyUserSerializer
+    lookup_field = 'username'
+
     def post(self, request, *args, **kwargs):
         """Follow"""
         profile = request.user
-        username = kwargs['slug']
-        following = get_object_or_404(MyUser, username=username)
+        following = self.get_object()
         if following != profile:
             profile.following.add(following)
             notif = Notification(profile=following,
                                  text=f'{profile.id} followed you!', )
             notif.save()
-            return Response(data=MyUserSerializer(following).data, status=status.HTTP_200_OK)
         else:
             raise ValidationError('You cant follow yourself')
+        return self.list(request, *args, **kwargs)
 
 
 class FollowingAPI(ListAPIView):
@@ -60,66 +64,100 @@ class FollowersAPI(ListAPIView):
         return followings
 
 
-class IndustriesAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
+class IndustriesAPI(GenericAPIView):
     serializer_class = IndustriesSerializer
     queryset = Industries.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_queryset().get_or_create(title=kwargs['title'])[0]
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class GetAllIndustriesAPI(ListAPIView):
     """Get All Industries"""
     serializer_class = IndustriesSerializer
-    # search fields
     filterset_fields = ['title']
+    ordering_fields = '__all__'
     queryset = Industries.objects.all()
 
 
-class CategoryAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
+class CategoryAPI(RetrieveAPIView):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
 
 
-class GetAllCategoryAPI(ListAPIView):
+class GetAllCategoryAPI(ListCreateAPIView):
     """Get All Categories"""
     serializer_class = CategorySerializer
-    filterset_fields = ['title', 'industry__title', 'upperCategory__title']
+    filterset_fields = ['title', 'industry', 'upperCategory']
+    ordering_fields = '__all__'
     queryset = Category.objects.all()
 
 
-class TechAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
+class TechAPI(RetrieveAPIView):
     serializer_class = TechSerializer
     queryset = Tech.objects.all()
 
 
-class GetAllTechAPI(ListAPIView):
+class GetAllTechAPI(ListCreateAPIView):
     """Get All Techs"""
     serializer_class = TechSerializer
-    filterset_fields = ['title', 'industry__title']
+    filterset_fields = ['title', 'industry']
     queryset = Tech.objects.all()
 
 
-class JobAPI(CreateAPIView, RetrieveAPIView, DestroyAPIView):
+class JobAPI(RetrieveAPIView):
     serializer_class = JobSerializer
     queryset = Job.objects.all()
 
 
-class GetAllJobAPI(ListAPIView):
+class GetAllJobAPI(ListCreateAPIView):
     """Get All Jobs"""
     serializer_class = JobSerializer
-    filterset_fields = ['title', 'industry__title']
+    filterset_fields = ['title', 'industry']
     queryset = Job.objects.all()
 
 
-class EducationalBackgroundAPI(CreateRetrieveUpdateDestroyAPIView):
+class EducationalBackgroundAPI(RetrieveUpdateDestroyAPIView):
     serializer_class = EducationalBackgroundSerializer
     queryset = EducationalBackground.objects.all()
 
     def put(self, request, *args, **kwargs):
         """Edit EducationalBackground"""
+        self.permission_classes = [IsItEmployee]
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        """Edit EducationalBackground"""
+        self.permission_classes = [IsItEmployee]
         return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         """Delete EducationalBackground"""
+        self.permission_classes = [IsItEmployee]
         return self.destroy(request, *args, **kwargs)
+
+
+class EducationalBackgroundListAPI(ListCreateAPIView):
+    serializer_class = EducationalBackgroundSerializer
+    queryset = EducationalBackground.objects.all()
+    filterset_fields = {
+        'profile': ['exact'],
+        'grad': ['exact', 'contains'],
+        'major': ['exact', 'contains'],
+        'educationalInstitute': ['exact', 'contains'],
+        'start': ['exact', 'contains', 'lte', 'gte'],
+        'end': ['exact', 'contains', 'lte', 'gte'],
+        'adjusted': ['exact', 'lte', 'gte'],
+        'description': ['exact', 'contains']
+    }
+    ordering_fields = '__all__'
+
+    def post(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticated]
+        self.check_permissions(request)
+        return self.create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         """Set Profile"""
@@ -129,42 +167,8 @@ class EducationalBackgroundAPI(CreateRetrieveUpdateDestroyAPIView):
         except Employee.DoesNotExist:
             raise ValidationError('There is no employee on this profile')
 
-    def perform_update(self, serializer):
-        """Set Profile"""
-        try:
-            employee = self.request.user.employee
-            education = get_object_or_404(EducationalBackground, id=self.kwargs['pk'])
-            if employee == education.profile:
-                return serializer.save(profile=employee)
-            else:
-                raise ValidationError('access denied!')
-        except Employee.DoesNotExist:
-            raise ValidationError('There is no employee on this profile')
 
-    def perform_destroy(self, instance):
-        education = get_object_or_404(EducationalBackground, id=self.kwargs['pk'])
-        try:
-            employee = self.request.user.employee
-        except Employee.DoesNotExist:
-            raise ValidationError('There is no employee on this profile')
-        if employee == education.profile:
-            return instance.delete()
-        else:
-            raise ValidationError('access denied!')
-
-
-class ProfileEducationalBackground(ListAPIView):
-    serializer_class = EducationalBackgroundSerializer
-
-    def get_queryset(self):
-        """Get profile's EducationalBackground"""
-        username = self.kwargs['slug']
-        employee = get_object_or_404(Employee, profile__username=username)
-        education = employee.educationalBackground.all()
-        return education
-
-
-class WorkExperienceAPI(CreateRetrieveUpdateDestroyAPIView):
+class WorkExperienceAPI(RetrieveUpdateDestroyAPIView):
     serializer_class = WorkExperienceSerializer
     queryset = WorkExperience.objects.all()
 
@@ -178,35 +182,42 @@ class WorkExperienceAPI(CreateRetrieveUpdateDestroyAPIView):
         self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
+
+class WorkExperienceListAPI(ListCreateAPIView):
+    serializer_class = WorkExperienceSerializer
+    queryset = WorkExperience.objects.all()
+    filterset_fields = {
+        'profile': ['exact'],
+        'title': ['exact', 'contains'],
+        'company': ['exact', 'contains'],
+        'start': ['exact', 'contains', 'lte', 'gte'],
+        'end': ['exact', 'contains', 'lte', 'gte'],
+        'tech': ['contains'],
+        'description': ['exact', 'contains']
+    }
+    ordering_fields = '__all__'
+
+    def post(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticated]
+        self.check_permissions(request)
+        return self.create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         """Set Profile"""
         return serializer.save(profile=self.request.user)
 
-    def perform_update(self, serializer):
-        """Set Profile"""
-        workExperience = get_object_or_404(WorkExperience, id=self.kwargs['pk'])
-        self.check_object_permissions(request=self.request, obj=workExperience)
-        return serializer.save(profile=workExperience.profile)
 
-    def perform_destroy(self, instance):
-        self.check_object_permissions(request=self.request, obj=instance)
-        return instance.delete
-
-
-class ProfileWorkExperience(ListAPIView):
-    serializer_class = WorkExperienceSerializer
-
-    def get_queryset(self):
-        """Get profile's WorkExperience"""
-        username = self.kwargs['slug']
-        return WorkExperience.objects.filter(profile__username=username)
-
-
-class AchievementAPI(CreateRetrieveUpdateDestroyAPIView):
+class AchievementAPI(RetrieveUpdateDestroyAPIView):
     serializer_class = AchievementSerializer
     queryset = Achievement.objects.all()
 
+
     def put(self, request, *args, **kwargs):
+        """Edit Achievement"""
+        self.permission_classes = [IsItOwner]
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
         """Edit Achievement"""
         self.permission_classes = [IsItOwner]
         return self.update(request, *args, **kwargs)
@@ -216,81 +227,67 @@ class AchievementAPI(CreateRetrieveUpdateDestroyAPIView):
         self.permission_classes = [IsItOwner]
         return self.destroy(request, *args, **kwargs)
 
+
+class AchievementLIstAPI(ListCreateAPIView):
+    serializer_class = AchievementSerializer
+    queryset = Achievement.objects.all()
+    filterset_fields = {
+        'profile': ['exact'],
+        'title': ['exact', 'contains'],
+        'siteAddress': ['exact', 'contains'],
+        'certificateProvider': ['exact', 'contains'],
+        'date': ['exact', 'contains', 'lte', 'gte'],
+        'description': ['exact', 'contains']
+    }
+    ordering_fields = '__all__'
+    def post(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticated]
+        self.check_permissions(request)
+        return self.create(request, *args, **kwargs)
     def perform_create(self, serializer):
         """Set Profile"""
         return serializer.save(profile=self.request.user)
 
-    def perform_update(self, serializer):
-        """Set Profile"""
-        achievement = get_object_or_404(Achievement, id=self.kwargs['pk'])
-        self.check_object_permissions(request=self.request, obj=achievement)
-        return serializer.save(profile=achievement.profile)
 
-    def perform_destroy(self, instance):
-        self.check_object_permissions(request=self.request, obj=instance)
-        return instance.delete
+class NotificationMarkAsRead(RetrieveAPIView):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
 
-
-class ProfileAchievement(ListAPIView):
-    serializer_class = AchievementSerializer
-
-    def get_queryset(self):
-        """Get profile's Achievment"""
-        username = self.kwargs['slug']
-        return Achievement.objects.filter(profile__username=username)
-
-
-class NotificationMarkAsRead(APIView):
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         """Mark Notification as Read"""
         profile = request.user
-        notification = get_object_or_404(Notification, id=kwargs['id'])
+        notification = self.get_object()
         if notification.profile == profile:
             notification.markAsRead = True
             notification.save()
-            serializer = NotificationSerializer(notification).data
-            return Response(data=serializer, status=status.HTTP_200_OK)
+            return self.retrieve(request, *args, **kwargs)
         else:
             raise ValidationError('access denied!')
 
 
-class UserNotification(ListAPIView):
+class UserNotificationListAPI(ListAPIView):
     serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+    ordering_fields = '__all__'
+    filterset_fields = {
+        'profile': ['exact', ],
+        'text': ['exact', 'contains'],
+        'slug': ['exact', 'contains'],
+        'date': ['exact', 'contains', 'lte', 'gte'],
+        'markAsRead': ['exact', ]
+    }
 
     def get_queryset(self):
         """Get User's Notifications"""
         profile = self.request.user
-        notifications = profile.notification.all().order_by('-date')
+        notifications = profile.notification.all()
         return notifications
 
 
-class ApplyForJobAPI(CreateAPIView, UpdateAPIView, RetrieveAPIView):
+class ApplyForJobAPI(UpdateAPIView, RetrieveAPIView):
     serializer_class = ApplyForJobSerializer
     queryset = ApplyForJob.objects.all()
-
-    def post(self, request, *args, **kwargs):
-        """Apply For Job"""
-        return self.create(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        """Edit Apply For Job"""
-        return self.update(request, *args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
-        """Get Apply For Job"""
-        return self.retrieve(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        profile = self.request.user
-        try:
-            company = profile.company
-            return serializer.save(company=company, sender='c', status='w')
-        except Company.DoesNotExist:
-            try:
-                employee = profile.employee
-                return serializer.save(employee=employee, sender='e', status='w')
-            except Employee.DoesNotExist:
-                raise ValidationError('There is no employee or company on this token!')
 
     def perform_update(self, serializer):
         profile = self.request.user
@@ -309,24 +306,36 @@ class ApplyForJobAPI(CreateAPIView, UpdateAPIView, RetrieveAPIView):
             raise ValidationError("you've verified it before")
 
 
-class AllAppliesForJob(ListAPIView):
+class AppliesForJobListAPI(ListCreateAPIView):
     serializer_class = ApplyForJobSerializer
+    queryset = ApplyForJob.objects.all()
+    ordering_fields = '__all__'
+    filterset_fields = {
+        'employee': ['exact', ],
+        'company': ['exact', ],
+        'sender': ['exact', ],
+        'text': ['exact', 'contains'],
+        'status': ['exact'],
+        'nonCooperation': ['exact'],
+        'nonCooperationDate': ['exact', 'contains', 'lte', 'gte']
+    }
 
-    def get_queryset(self):
-        """Get profile's Job Offer"""
-        username = self.kwargs['slug']
-        if 'status' in self.request.data:
-            if self.request.data['status'] in ['w', 'r', 'a']:
-                qs = ApplyForJob.objects.filter(
-                    Q(company__profile__username=username) | Q(employee__profile__username=username),
-                    status=self.request.data['status'])
-            else:
-                qs = ApplyForJob.objects.filter(
-                    Q(company__profile__username=username) | Q(employee__profile__username=username))
-        else:
-            qs = ApplyForJob.objects.filter(
-                Q(company__profile__username=username) | Q(employee__profile__username=username))
-        return qs
+    def post(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticated]
+        self.check_permissions(request)
+        return self.create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        profile = self.request.user
+        try:
+            company = profile.company
+            return serializer.save(company=company, sender='c', status='w')
+        except Company.DoesNotExist:
+            try:
+                employee = profile.employee
+                return serializer.save(employee=employee, sender='e', status='w')
+            except Employee.DoesNotExist:
+                raise ValidationError('There is no employee or company on this token!')
 
 
 class VerifyApplyForJobAPI(APIView):
@@ -359,11 +368,16 @@ class VerifyApplyForJobAPI(APIView):
         return Response(data=data, status=statusResponse)
 
 
-class JobOfferAPI(CreateRetrieveUpdateDestroyAPIView):
+class JobOfferAPI(RetrieveUpdateDestroyAPIView):
     serializer_class = JobOfferSerializer
     queryset = JobOffer.objects.all()
 
     def put(self, request, *args, **kwargs):
+        """Edit Job Offer"""
+        self.permission_classes = [IsItOwnerCompany]
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
         """Edit Job Offer"""
         self.permission_classes = [IsItOwnerCompany]
         return self.update(request, *args, **kwargs)
@@ -373,40 +387,33 @@ class JobOfferAPI(CreateRetrieveUpdateDestroyAPIView):
         self.permission_classes = [IsItOwnerCompany]
         return self.destroy(request, *args, **kwargs)
 
+    def perform_update(self, serializer):
+        return serializer.save(company=self.get_object().company)
+
+
+class JobOfferListAPI(ListCreateAPIView):
+    serializer_class = JobOfferSerializer
+    queryset = JobOffer.objects.all()
+    filterset_fields = ['title', 'job', 'tech', 'category', 'count', 'jobType', 'text']
+    ordering_fields = '__all__'
+
+    def post(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticated]
+        self.check_permissions(request)
+        return self.create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         """Set Company on instance"""
         profile = self.request.user
         company = GetCompany(profile)
         return serializer.save(company=company)
 
-    def perform_update(self, serializer):
-        instance = get_object_or_404(JobOffer, id=self.kwargs['pk'])
-        self.check_object_permissions(self.request, instance)
-        return serializer.save(company=instance.company)
-
-    def perform_destroy(self, instance):
-        self.check_object_permissions(self.request, instance)
-        return instance.delete()
-
-
-class GetAllProfileJobOffer(ListAPIView):
-    serializer_class = JobOfferSerializer
-
-    def get_queryset(self):
-        """get profile job offer"""
-        return JobOffer.objects.filter(company__profile__username=self.kwargs['slug'])
-
-
-class SearchJobOffers(ListAPIView):
-    serializer_class = JobOfferSerializer
-    queryset = JobOffer.objects.all().order_by('-id')
-    filterset_fields = ['title', 'job', 'tech', 'category', 'count', 'jobType', 'text']
-
 
 class CompanyAll(ListAPIView):
     serializer_class = CompanyProfileSerializer
-    queryset = Company.objects.all().order_by('-id')
+    queryset = Company.objects.all()
     filterset_fields = ['companyName', 'about', 'foundedIn', 'employeeCount', 'industries', 'category', 'needEmployee']
+    ordering_fields = '__all__'
 
 
 class EmployeeAll(ListAPIView):
@@ -414,6 +421,7 @@ class EmployeeAll(ListAPIView):
     filterset_fields = ['gender', 'category', 'industries',
                         'relationshipStatus', 'jobSearchStatus']
     queryset = Employee.objects.all()
+    ordering_fields = '__all__'
 
 
 class EmployeeRU(RetrieveAPIView, UpdateAPIView):

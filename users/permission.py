@@ -19,3 +19,8 @@ class IsItOwnerCompany(permissions.BasePermission):
             return True
         else:
             raise ValidationError('access denied')
+
+class IsItEmployee(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        employee = request.user.employee
+        return employee == obj.profile

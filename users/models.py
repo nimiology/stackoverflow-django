@@ -22,7 +22,7 @@ class MyUser(AbstractUser):
 
 
 class Industries(models.Model):
-    title = models.CharField(max_length=1024, unique=True)
+    title = models.CharField(max_length=1024, primary_key=True)
 
     def __str__(self):
         return self.title
@@ -184,7 +184,7 @@ class Achievement(models.Model):
     title = models.CharField(max_length=1024)
     certificateProvider = models.CharField(max_length=1024)
     date = models.DateField()
-    siteAddress = models.CharField(max_length=1024, blank=True)
+    siteAddress = models.URLField(max_length=1024, blank=True)
     description = models.TextField(blank=True)
 
     def __str__(self):
@@ -221,7 +221,7 @@ class ApplyForJob(models.Model):
     sender = models.CharField(max_length=1, choices=SENDER_CHOICES)
     text = models.TextField()
     status = models.CharField(default='w', choices=STATUS_CHOICES, max_length=1)
-    non_cooperation = models.BooleanField(default=False)
+    nonCooperation = models.BooleanField(default=False)
     nonCooperationDate = models.DateField(blank=True, null=True)
 
     def __str__(self):
@@ -238,7 +238,7 @@ def ApplyForJobPreSave(sender, instance, *args, **kwargs):
                                     text=f'{instance.company.companyName} sent you request',
                                     slug='')
     notification.save()
-    if instance.non_cooperation:
+    if instance.nonCooperation:
         instance.nonCooperationDate = datetime.datetime.now().date()
 
 
