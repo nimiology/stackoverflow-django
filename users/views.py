@@ -66,7 +66,7 @@ class FollowersAPI(ListAPIView):
 
 class IndustriesAPI(GenericAPIView):
     serializer_class = IndustriesSerializer
-    queryset = Industries.objects.all()
+    queryset = Industry.objects.all()
 
     def get(self, request, *args, **kwargs):
         instance = self.get_queryset().get_or_create(title=kwargs['title'])[0]
@@ -79,7 +79,7 @@ class GetAllIndustriesAPI(ListAPIView):
     serializer_class = IndustriesSerializer
     filterset_fields = ['title']
     ordering_fields = '__all__'
-    queryset = Industries.objects.all()
+    queryset = Industry.objects.all()
 
 
 class CategoryAPI(RetrieveAPIView):

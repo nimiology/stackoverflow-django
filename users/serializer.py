@@ -26,7 +26,7 @@ class JobSerializer(serializers.ModelSerializer):
 
 class IndustriesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Industries
+        model = Industry
         fields = '__all__'
 
 
@@ -34,7 +34,7 @@ class VerifyIndustriesSerializer(serializers.ModelSerializer):
     title = serializers.CharField(required=False)
 
     class Meta:
-        model = Industries
+        model = Industry
         fields = '__all__'
 
 

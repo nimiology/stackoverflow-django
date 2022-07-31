@@ -21,7 +21,7 @@ class MyUser(AbstractUser):
         swappable = 'AUTH_USER_MODEL'
 
 
-class Industries(models.Model):
+class Industry(models.Model):
     title = models.CharField(max_length=1024, primary_key=True)
 
     def __str__(self):
@@ -29,7 +29,7 @@ class Industries(models.Model):
 
 
 class Category(models.Model):
-    industry = models.ForeignKey(Industries, null=True, on_delete=models.CASCADE, related_name='category')
+    industry = models.ForeignKey(Industry, null=True, on_delete=models.CASCADE, related_name='category')
     title = models.CharField(max_length=500, unique=True)
     upperCategory = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True,
                                       related_name='reverseCategory')
@@ -41,7 +41,7 @@ class Category(models.Model):
 
 class Tech(models.Model):
     title = models.CharField(max_length=1024, unique=True, null=True, blank=True)
-    industry = models.ForeignKey(Industries, null=True, blank=True, on_delete=models.CASCADE, related_name='tech')
+    industry = models.ForeignKey(Industry, null=True, blank=True, on_delete=models.CASCADE, related_name='tech')
 
     def __str__(self):
         return self.title
@@ -49,7 +49,7 @@ class Tech(models.Model):
 
 class Job(models.Model):
     title = models.CharField(max_length=1024, unique=True)
-    industry = models.ForeignKey(Industries, blank=True, null=True, on_delete=models.CASCADE, related_name='role')
+    industry = models.ForeignKey(Industry, blank=True, null=True, on_delete=models.CASCADE, related_name='role')
 
     def __str__(self):
         return self.title
@@ -67,7 +67,7 @@ class Company(models.Model):
     website = models.CharField(max_length=500, blank=True)
     foundedIn = models.DateField(blank=True, null=True)
     category = models.ManyToManyField(Category, blank=True, related_name=relatedName)
-    industries = models.ManyToManyField(Industries, blank=True, related_name=relatedName)
+    industries = models.ManyToManyField(Industry, blank=True, related_name=relatedName)
     employeeCount = models.CharField(max_length=1024, blank=True)
     needEmployee = models.BooleanField(blank=True, null=True)
 
@@ -136,8 +136,8 @@ class Employee(models.Model):
     techWantsToNotWorkWith = models.ManyToManyField(Tech, blank=True,
                                                     related_name='employeeProfileTechWantsToNotWorkWith')
     role = models.ManyToManyField(Job, blank=True, related_name=relatedName)
-    industries = models.ManyToManyField(Industries, blank=True, related_name='employeeProfileIndustries')
-    industriesToExclude = models.ManyToManyField(Industries, blank=True,
+    industries = models.ManyToManyField(Industry, blank=True, related_name='employeeProfileIndustries')
+    industriesToExclude = models.ManyToManyField(Industry, blank=True,
                                                  related_name='employeeProfileIndustriesToExclude')
     jobType = models.CharField(max_length=1, choices=JOB_TYPE_CHOICES, blank=True)
     hire = models.BooleanField(blank=True, null=True)

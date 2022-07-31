@@ -3,7 +3,7 @@ from rest_framework.test import APITestCase
 from django.urls import reverse
 
 from posts.tests import UserToken
-from users.models import MyUser, Industries, Tech, Job, Category, Company, Employee, WorkExperience, \
+from users.models import MyUser, Industry, Tech, Job, Category, Company, Employee, WorkExperience, \
     Achievement, EducationalBackground, Notification, ApplyForJob, JobOffer
 
 
@@ -36,17 +36,16 @@ class WalletTest(APITestCase):
 class IndustryTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
-        self.industry = Industries(title='test')
-        self.industry.save()
+        self.industry = Industry.objects.create(title='test')
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_create_industry(self):
-        response = self.client.get(reverse('users:industry', args=('sadf',)),)
+        response = self.client.get(reverse('users:industry', args=('sadf',)), )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_industry(self):
         response = self.client.get(reverse('users:industry', args=(self.industry.pk,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
 
     def test_get_industries(self):
         response = self.client.get(reverse('users:industries_list'), )
@@ -56,10 +55,9 @@ class IndustryTest(APITestCase):
 class TechTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
-        self.industry = Industries(title='test')
-        self.industry.save()
-        self.tech = Tech(title='test', industry=self.industry)
-        self.tech.save()
+        self.industry = Industry.objects.create(title='test')
+        self.tech = Tech.objects.create(title='test', industry=self.industry)
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_create_tech(self):
         response = self.client.post(reverse('users:techs_list'),
@@ -78,15 +76,13 @@ class TechTest(APITestCase):
 class CategoryTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
-        self.industry = Industries(title='test')
-        self.industry.save()
-        self.category = Category(title='test', industry=self.industry)
-        self.category.save()
+        self.industry = Industry.objects.create(title='test')
+        self.category = Category.objects.create(title='test', industry=self.industry)
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_get_category(self):
         response = self.client.get(reverse('users:category', args=(self.category.pk,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
 
     def test_get_categories(self):
         response = self.client.get(reverse('users:categories_list'))
@@ -96,10 +92,9 @@ class CategoryTest(APITestCase):
 class JobTest(APITestCase):
     def setUp(self):
         self.user, self.tokenUser1 = UserToken('testman1')
-        self.industry = Industries(title='test')
-        self.industry.save()
-        self.job = Job(title='test', industry=self.industry)
-        self.job.save()
+        self.industry = Industry.objects.create(title='test')
+        self.job = Job.objects.create(title='test', industry=self.industry)
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_create_job(self):
         response = self.client.post(reverse('users:jobs_list'),
@@ -118,82 +113,80 @@ class JobTest(APITestCase):
 class WorkExperienceTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
-        self.workExperience = WorkExperience(profile=self.user1, title='test', company='company', start='2020-10-10')
-        self.workExperience.save()
+        self.workExperience = WorkExperience.objects.create(profile=self.user1, title='test', company='company',
+                                                            start='2020-10-10')
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_create_work_experience(self):
-        response = self.client.post(reverse('users:workexperiences_list'), HTTP_AUTHORIZATION=self.tokenUser1,
+        response = self.client.post(reverse('users:workexperiences_list'),
                                     data={'title': 'test', 'company': 'company', 'start': '2020-1-1'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_edit_work_experience(self):
         response = self.client.put(reverse('users:workexperience', args=(self.workExperience.pk,)),
-                                   HTTP_AUTHORIZATION=self.tokenUser1,
+
                                    data={'title': 'test', 'company': 'company1', 'start': '2020-1-1'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_work_experience(self):
         response = self.client.get(reverse('users:workexperience', args=(self.workExperience.pk,)),
-                                   HTTP_AUTHORIZATION=self.tokenUser1, )
+                                   )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_work_experience(self):
         response = self.client.delete(reverse('users:workexperience', args=(self.workExperience.pk,)),
-                                      HTTP_AUTHORIZATION=self.tokenUser1, )
+                                      )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_get_work_experiences(self):
-        response = self.client.get(reverse('users:workexperiences_list',),
-                                   HTTP_AUTHORIZATION=self.tokenUser1, )
+        response = self.client.get(reverse('users:workexperiences_list', ),
+                                   )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class AchievementTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
-        self.achievement = Achievement(profile=self.user1, title='test', certificateProvider='company',
-                                       date='2020-10-10')
-        self.achievement.save()
+        self.achievement = Achievement.objects.create(profile=self.user1, title='test', certificateProvider='company',
+                                                      date='2020-10-10')
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_create_achievement(self):
         response = self.client.post(reverse('users:achievements_list'),
-                                    HTTP_AUTHORIZATION=self.tokenUser1,
                                     data={'title': 'test', 'certificateProvider': 'company', 'date': '2020-1-1'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_edit_achievement(self):
         response = self.client.put(reverse('users:achievement', args=(self.achievement.pk,)),
-                                   HTTP_AUTHORIZATION=self.tokenUser1,
                                    data={'title': 'test', 'certificateProvider': 'company1', 'date': '2020-1-1'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_achievement(self):
-        response = self.client.get(reverse('users:achievement', args=(self.achievement.pk,)),
-                                   HTTP_AUTHORIZATION=self.tokenUser1, )
+        response = self.client.get(reverse('users:achievement', args=(self.achievement.pk,)),)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_achievement(self):
-        response = self.client.delete(reverse('users:achievement', args=(self.achievement.pk,)),
-                                      HTTP_AUTHORIZATION=self.tokenUser1, )
+        response = self.client.delete(reverse('users:achievement', args=(self.achievement.pk,)),)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_get_achievements(self):
-        response = self.client.get(reverse('users:achievements_list',),
-                                   HTTP_AUTHORIZATION=self.tokenUser1, )
+        response = self.client.get(reverse('users:achievements_list', ),)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class EducationalBackgroundTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
-        self.employee = Employee(profile=self.user1, name='test')
-        self.employee.save()
-        self.educationalBackground = EducationalBackground(profile=self.employee, educationalInstitute='institute',
-                                                           major='test', grad='11', start='2020-10-10', adjusted=19.00)
-        self.educationalBackground.save()
+        self.employee = Employee.objects.create(profile=self.user1, name='test')
+        self.educationalBackground = EducationalBackground.objects.create(profile=self.employee,
+                                                                          educationalInstitute='institute',
+                                                                          major='test', grad='11', start='2020-10-10',
+                                                                          adjusted=19.00)
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
+
 
     def test_create_educational_background(self):
-        response = self.client.post(reverse('users:educationalbackgrounds_list'), HTTP_AUTHORIZATION=self.tokenUser1,
+        response = self.client.post(reverse('users:educationalbackgrounds_list'),
                                     data={'title': 'test', 'educationalInstitute': 'company',
                                           'major': 'test', 'grad': 'test', 'start': '2020-1-1',
                                           'adjusted': 19.00})
@@ -201,41 +194,36 @@ class EducationalBackgroundTest(APITestCase):
 
     def test_edit_educational_background(self):
         response = self.client.put(reverse('users:educationalbackground', args=(self.educationalBackground.pk,)),
-                                   HTTP_AUTHORIZATION=self.tokenUser1,
                                    data={'title': 'test', 'educationalInstitute': 'company',
                                          'major': 'test', 'grad': 'test', 'start': '2020-1-1',
                                          'adjusted': 19.00})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_educational_background(self):
-        response = self.client.get(reverse('users:educationalbackground', args=(self.educationalBackground.pk,)),
-                                   HTTP_AUTHORIZATION=self.tokenUser1, )
+        response = self.client.get(reverse('users:educationalbackground', args=(self.educationalBackground.pk,)),)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_educational_background(self):
-        response = self.client.delete(reverse('users:educationalbackground', args=(self.educationalBackground.pk,)),
-                                      HTTP_AUTHORIZATION=self.tokenUser1, )
+        response = self.client.delete(reverse('users:educationalbackground', args=(self.educationalBackground.pk,)),)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_get_user_educational_backgrounds(self):
-        response = self.client.get(reverse('users:educationalbackgrounds_list'),
-                                   HTTP_AUTHORIZATION=self.tokenUser1, )
+        response = self.client.get(reverse('users:educationalbackgrounds_list'),)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class NotificationTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
-        self.notification = Notification(profile=self.user1, text='test')
-        self.notification.save()
+        self.notification = Notification.objects.create(profile=self.user1, text='test')
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_notifications(self):
-        response = self.client.get(reverse('users:notification'), HTTP_AUTHORIZATION=self.tokenUser1)
+        response = self.client.get(reverse('users:notification'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_mark_as_read(self):
-        response = self.client.get(reverse('users:notification_markasread', args=(self.notification.pk,)),
-                                    HTTP_AUTHORIZATION=self.tokenUser1)
+        response = self.client.get(reverse('users:notification_markasread', args=(self.notification.pk,)),)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
@@ -243,85 +231,74 @@ class ApplyForJobTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
         self.user2, self.tokenUser2 = UserToken('testman2')
-        self.employee = Employee(profile=self.user1, name='test')
-        self.employee.save()
-        self.company = Company(profile=self.user2, companyName='test')
-        self.company.save()
-        self.apply4job = ApplyForJob(employee=self.employee, company=self.company, sender='c',
-                                     text='test')
-        self.apply4job.save()
+        self.employee = Employee.objects.create(profile=self.user1, name='test')
+        self.company = Company.objects.create(profile=self.user2, companyName='test')
+        self.apply4job = ApplyForJob.objects.create(employee=self.employee, company=self.company, sender='c',
+                                                    text='test')
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_create_apply_for_job(self):
-        response = self.client.post(reverse('users:applyforjobs_list'), HTTP_AUTHORIZATION=self.tokenUser1,
+        response = self.client.post(reverse('users:applyforjobs_list'),
                                     data={'company': self.company.pk, 'text': 'test'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_edit_apply_for_job(self):
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser2)
         response = self.client.put(reverse('users:applyforjob', args=(self.apply4job.pk,)),
-                                   HTTP_AUTHORIZATION=self.tokenUser2,
                                    data={'text': 'a'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_apply_for_job(self):
-        response = self.client.get(reverse('users:applyforjob', args=(self.apply4job.pk,)),
-                                   HTTP_AUTHORIZATION=self.tokenUser1)
+        response = self.client.get(reverse('users:applyforjob', args=(self.apply4job.pk,)),)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_reject_apply_for_job(self):
-        response = self.client.post(reverse('users:reject_applyforjob', args=(self.apply4job.pk,)),
-                                    HTTP_AUTHORIZATION=self.tokenUser1)
+        response = self.client.post(reverse('users:reject_applyforjob', args=(self.apply4job.pk,)),)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_accept_apply_for_job(self):
-        response = self.client.post(reverse('users:accept_applyforjob', args=(self.apply4job.pk,)),
-                                    HTTP_AUTHORIZATION=self.tokenUser1)
+        response = self.client.post(reverse('users:accept_applyforjob', args=(self.apply4job.pk,)),)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_user_applies_for_job(self):
-        response = self.client.get(reverse('users:applyforjobs_list',),
-                                   HTTP_AUTHORIZATION=self.tokenUser1)
+        response = self.client.get(reverse('users:applyforjobs_list', ),)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class JobOfferTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
-        self.company = Company(profile=self.user1, companyName='test')
-        self.company.save()
-        self.industry = Industries(title='test')
-        self.industry.save()
-        self.category = Category(title='test', industry=self.industry)
-        self.category.save()
-        self.joboffer = JobOffer(company=self.company, title='test', count=20, jobType='F')
-        self.joboffer.save()
+        self.company = Company.objects.create(profile=self.user1, companyName='test')
+        self.industry = Industry.objects.create(title='test')
+        self.category = Category.objects.create(title='test', industry=self.industry)
+        self.joboffer = JobOffer.objects.create(company=self.company, title='test', count=20, jobType='F')
         self.joboffer.category.add(self.category)
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_create_job_offer(self):
-        response = self.client.post(reverse('users:joboffers_list'), HTTP_AUTHORIZATION=self.tokenUser1,
+        response = self.client.post(reverse('users:joboffers_list'),
                                     data={'title': 'test', 'category': self.category.id,
                                           'count': 24, 'jobType': 'F'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_job_offer(self):
-        response = self.client.get(reverse('users:joboffer', args=(self.joboffer.pk,)),
-                                   HTTP_AUTHORIZATION=self.tokenUser1, )
+        response = self.client.get(reverse('users:joboffer', args=(self.joboffer.pk,)), )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_job_offers(self):
-        response = self.client.get(reverse('users:joboffers_list'), HTTP_AUTHORIZATION=self.tokenUser1)
+        response = self.client.get(reverse('users:joboffers_list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_job_offer(self):
-        response = self.client.delete(reverse('users:joboffer', args=(self.joboffer.pk,)),
-                                      HTTP_AUTHORIZATION=self.tokenUser1, )
+        response = self.client.delete(reverse('users:joboffer', args=(self.joboffer.pk,)), )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
 class EmployeeTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
-        self.employee = Employee(profile=self.user1, name='test')
-        self.employee.save()
+        self.employee = Employee.objects.create(profile=self.user1, name='test')
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_get_employees(self):
         response = self.client.get(reverse('users:employees'))
@@ -333,7 +310,6 @@ class EmployeeTest(APITestCase):
 
     def test_edit_employee(self):
         response = self.client.put(reverse('users:employee', args=(self.employee.pk,)),
-                                   HTTP_AUTHORIZATION=self.tokenUser1,
                                    data={'name': 'test', 'phoneNumber': '09304895880', 'gender': 'M',
                                          'relationshipStatus': 'S', 'jobSearchStatus': 'A'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -342,8 +318,8 @@ class EmployeeTest(APITestCase):
 class CompanyTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
-        self.company = Company(profile=self.user1, companyName='test')
-        self.company.save()
+        self.company = Company.objects.create(profile=self.user1, companyName='test')
+        self.client.credentials(HTTP_AUTHORIZATION=self.tokenUser1)
 
     def test_get_companies(self):
         response = self.client.get(reverse('users:companies'))
@@ -354,6 +330,6 @@ class CompanyTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_edit_company(self):
-        response = self.client.put(reverse('users:company', args=(self.company.pk,)), HTTP_AUTHORIZATION=self.tokenUser1,
+        response = self.client.put(reverse('users:company', args=(self.company.pk,)),
                                    data={'companyName': 'test'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
