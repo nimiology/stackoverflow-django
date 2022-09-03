@@ -7,7 +7,7 @@ from users.models import MyUser, Industry, Tech, Job, Category, Company, Employe
     Achievement, EducationalBackground, Notification, ApplyForJob, JobOffer
 
 
-class WalletTest(APITestCase):
+class UserTest(APITestCase):
     def setUp(self):
         self.user1, self.tokenUser1 = UserToken('testman1')
         self.user2, self.tokenUser2 = UserToken('testman2')
